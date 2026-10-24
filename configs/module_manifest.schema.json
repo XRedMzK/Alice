@@ -1,0 +1,550 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nmcm.local/schemas/module-manifest-v1alpha1.json",
+  "title": "NMCM v2 neural module manifest",
+  "description": "Structural contract for an independently versioned neural module. Purpose text is documentation and must not be consumed as a semantic routing rule.",
+  "$comment": "Cross-field rules such as rank/shape length and unique named endpoints/tensors are completed by the semantic conformance validator specified in MODULE_CONTRACT.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "persistent_state_schema": {
+            "properties": {"enabled": {"const": true}},
+            "required": ["enabled"]
+          }
+        },
+        "required": ["persistent_state_schema"]
+      },
+      "then": {
+        "properties": {
+          "checkpoint_schema": {
+            "properties": {
+              "includes": {"contains": {"const": "persistent_state"}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "private_state_schema": {
+            "properties": {"enabled": {"const": true}},
+            "required": ["enabled"]
+          }
+        },
+        "required": ["private_state_schema"]
+      },
+      "then": {
+        "properties": {
+          "checkpoint_schema": {
+            "properties": {
+              "includes": {"contains": {"const": "private_state"}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "private_state_schema": {
+            "properties": {"enabled": {"const": true}},
+            "required": ["enabled"]
+          },
+          "offload_policy": {
+            "properties": {"allowed": {"const": true}},
+            "required": ["allowed"]
+          }
+        },
+        "required": ["private_state_schema", "offload_policy"]
+      },
+      "then": {
+        "properties": {
+          "offload_policy": {
+            "properties": {
+              "state_components": {"contains": {"const": "private_state"}}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "persistent_state_schema": {
+            "properties": {"enabled": {"const": true}},
+            "required": ["enabled"]
+          },
+          "offload_policy": {
+            "properties": {"allowed": {"const": true}},
+            "required": ["allowed"]
+          }
+        },
+        "required": ["persistent_state_schema", "offload_policy"]
+      },
+      "then": {
+        "properties": {
+          "offload_policy": {
+            "properties": {
+              "state_components": {"contains": {"const": "persistent_state"}}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "required": [
+    "manifest_schema",
+    "module_id",
+    "module_version",
+    "purpose",
+    "input_interfaces",
+    "output_interfaces",
+    "input_latent_schema",
+    "output_latent_schema",
+    "private_state_schema",
+    "persistent_state_schema",
+    "trainable_parameters",
+    "frozen_dependencies",
+    "update_frequency",
+    "causal_dependencies",
+    "plasticity_policy",
+    "checkpoint_schema",
+    "resource_budget",
+    "local_acceptance_tests",
+    "causal_ablation_tests",
+    "integration_tests",
+    "parallel_execution_safety",
+    "offload_policy",
+    "compatibility_version",
+    "telemetry",
+    "provenance"
+  ],
+  "properties": {
+    "manifest_schema": {
+      "const": "nmcm.module/v1alpha1"
+    },
+    "module_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*(?:[.][a-z][a-z0-9_]*)*$"
+    },
+    "module_version": {
+      "$ref": "#/$defs/semantic_version"
+    },
+    "purpose": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "scientific_hypothesis", "non_goals"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1},
+        "scientific_hypothesis": {"type": "string", "minLength": 1},
+        "non_goals": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "input_interfaces": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/interface"}
+    },
+    "output_interfaces": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/interface"}
+    },
+    "input_latent_schema": {
+      "$ref": "#/$defs/input_latent_schema_map"
+    },
+    "output_latent_schema": {
+      "$ref": "#/$defs/latent_schema_map"
+    },
+    "private_state_schema": {
+      "allOf": [
+        {"$ref": "#/$defs/state_schema"},
+        {
+          "if": {
+            "properties": {"enabled": {"const": false}},
+            "required": ["enabled"]
+          },
+          "then": {"required": ["exception_decision"]}
+        }
+      ]
+    },
+    "persistent_state_schema": {
+      "$ref": "#/$defs/state_schema"
+    },
+    "trainable_parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["estimated_count", "estimated_bytes", "groups"],
+      "properties": {
+        "estimated_count": {"type": "integer", "minimum": 1},
+        "estimated_bytes": {"type": "integer", "minimum": 1},
+        "groups": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "trainable_under"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "trainable_under": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1}
+              }
+            }
+          }
+        }
+      }
+    },
+    "frozen_dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/frozen_dependency"}
+    },
+    "update_frequency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "value"],
+      "properties": {
+        "unit": {"enum": ["graph_step", "event", "sequence", "episode"]},
+        "value": {"type": "integer", "minimum": 1},
+        "phase_offset": {"type": "integer", "minimum": 0, "default": 0}
+      }
+    },
+    "causal_dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/causal_dependency"}
+    },
+    "plasticity_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["default_mode", "allowed_modes", "state_update_during_frozen_eval"],
+      "properties": {
+        "default_mode": {"const": "frozen"},
+        "allowed_modes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["frozen", "local_trainable", "bounded_online"]},
+          "contains": {"const": "frozen"}
+        },
+        "state_update_during_frozen_eval": {"type": "boolean"},
+        "constraints": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "checkpoint_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "shard_format", "includes", "integrity", "atomic_write"],
+      "properties": {
+        "schema_version": {"type": "string", "minLength": 1},
+        "shard_format": {"type": "string", "minLength": 1},
+        "includes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["parameters", "private_state", "persistent_state", "optimizer_state", "rng_state"]},
+          "contains": {"const": "parameters"}
+        },
+        "integrity": {"const": "sha256"},
+        "atomic_write": {"const": true},
+        "migration_id": {"type": ["string", "null"]}
+      }
+    },
+    "resource_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameter_bytes",
+        "private_state_bytes",
+        "persistent_state_bytes",
+        "estimated_active_vram_peak_mib",
+        "incremental_active_vram_reservation_mib",
+        "estimated_gpu_utilization_contribution_percent",
+        "latency_p95_budget_ms",
+        "offload_transfer_bytes",
+        "measurement_method",
+        "measurement_workload",
+        "measurement_window"
+      ],
+      "properties": {
+        "parameter_bytes": {"type": "integer", "minimum": 1},
+        "private_state_bytes": {"type": "integer", "minimum": 0},
+        "persistent_state_bytes": {"type": "integer", "minimum": 0},
+        "estimated_active_vram_peak_mib": {"type": "integer", "minimum": 0, "maximum": 28672},
+        "incremental_active_vram_reservation_mib": {"type": "integer", "minimum": 0, "maximum": 28672},
+        "estimated_gpu_utilization_contribution_percent": {"type": "number", "minimum": 0, "maximum": 80},
+        "latency_p95_budget_ms": {"type": "number", "exclusiveMinimum": 0},
+        "offload_transfer_bytes": {"type": "integer", "minimum": 0},
+        "measurement_method": {"type": "string", "minLength": 1},
+        "measurement_workload": {"type": "string", "minLength": 1},
+        "measurement_window": {"type": "string", "minLength": 1}
+      }
+    },
+    "local_acceptance_tests": {
+      "$ref": "#/$defs/test_refs"
+    },
+    "causal_ablation_tests": {
+      "$ref": "#/$defs/test_refs"
+    },
+    "integration_tests": {
+      "$ref": "#/$defs/test_refs"
+    },
+    "parallel_execution_safety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "shared_mutable_neural_state", "candidate_isolation", "artifact_isolation"],
+      "properties": {
+        "mode": {"enum": ["independent", "isolated_clone_required", "causal_bundle_only", "serial"]},
+        "shared_mutable_neural_state": {"const": false},
+        "candidate_isolation": {"type": "string", "minLength": 1},
+        "artifact_isolation": {"type": "string", "minLength": 1}
+      }
+    },
+    "offload_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {"allowed": {"const": true}},
+            "required": ["allowed"]
+          },
+          "then": {
+            "properties": {
+              "destinations": {
+                "allOf": [
+                  {"contains": {"const": "gpu"}},
+                  {"contains": {"const": "ram"}}
+                ]
+              },
+              "state_components": {
+                "contains": {"const": "parameters"}
+              }
+            }
+          }
+        }
+      ],
+      "required": ["allowed", "destinations", "state_components", "safe_boundary", "max_round_trip_ms", "state_tolerance", "max_transfers_per_minute"],
+      "properties": {
+        "allowed": {"type": "boolean"},
+        "destinations": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["gpu", "ram", "persistent_storage"]}
+        },
+        "state_components": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"enum": ["parameters", "private_state", "persistent_state"]}
+        },
+        "safe_boundary": {"type": "string", "minLength": 1},
+        "max_round_trip_ms": {"type": "number", "minimum": 0},
+        "state_tolerance": {"type": "number", "minimum": 0},
+        "max_transfers_per_minute": {"type": "integer", "minimum": 0}
+      }
+    },
+    "compatibility_version": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]*/v[0-9]+(?:alpha[0-9]+|beta[0-9]+)?$"
+    },
+    "telemetry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "required_metrics", "sampling_policy"],
+      "properties": {
+        "schema_version": {"type": "string", "minLength": 1},
+        "required_metrics": {
+          "type": "array",
+          "minItems": 19,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1},
+          "allOf": [
+            {"contains": {"const": "module_id"}},
+            {"contains": {"const": "module_version"}},
+            {"contains": {"const": "compatibility_version"}},
+            {"contains": {"const": "lifecycle_state"}},
+            {"contains": {"const": "current_experiment"}},
+            {"contains": {"const": "latency_ms"}},
+            {"contains": {"const": "gpu_time_ms"}},
+            {"contains": {"const": "active_vram_mib"}},
+            {"contains": {"const": "active_vram_peak_mib"}},
+            {"contains": {"const": "gpu_utilization_mean_percent"}},
+            {"contains": {"const": "gpu_utilization_peak_percent"}},
+            {"contains": {"const": "state_statistics"}},
+            {"contains": {"const": "activation_statistics"}},
+            {"contains": {"const": "output_statistics"}},
+            {"contains": {"const": "checkpoint_schema_version"}},
+            {"contains": {"const": "state_schema_version"}},
+            {"contains": {"const": "snapshot_id"}},
+            {"contains": {"const": "local_status"}},
+            {"contains": {"const": "transfer_statistics"}}
+          ]
+        },
+        "sampling_policy": {"type": "string", "minLength": 1}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["human_spec", "source_revision", "created_by"],
+      "properties": {
+        "human_spec": {"type": "string", "minLength": 1},
+        "source_revision": {"type": "string", "minLength": 1},
+        "created_by": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "semantic_version": {
+      "type": "string",
+      "pattern": "^[0-9]+[.][0-9]+[.][0-9]+(?:[-+][0-9A-Za-z.-]+)?$"
+    },
+    "interface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["interface_id", "latent_schema_id", "multiplicity"],
+      "properties": {
+        "interface_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "latent_schema_id": {"type": "string", "minLength": 1},
+        "multiplicity": {"enum": ["one", "optional", "many"]},
+        "description": {"type": "string"}
+      }
+    },
+    "latent_schema_map": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/latent_schema"}
+    },
+    "input_latent_schema_map": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/latent_schema"}
+    },
+    "latent_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "representation", "representation_contract_id", "normalization", "tensors"],
+      "properties": {
+        "schema_version": {"type": "string", "minLength": 1},
+        "representation": {"const": "dense_distributed"},
+        "representation_contract_id": {"type": "string", "minLength": 1},
+        "normalization": {"type": "string", "minLength": 1},
+        "tensors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "rank", "shape", "dtype"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+              "rank": {"type": "integer", "minimum": 1},
+              "shape": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"oneOf": [{"type": "integer", "minimum": 1}, {"type": "string", "minLength": 1}]}
+              },
+              "dtype": {"enum": ["float16", "bfloat16", "float32", "float64"]},
+              "range": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "state_schema": {
+      "type": "object",
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {"enabled": {"const": true}},
+            "required": ["enabled"]
+          },
+          "then": {"properties": {"tensors": {"minItems": 1}}},
+          "else": {"properties": {"tensors": {"maxItems": 0}}}
+        }
+      ],
+      "required": ["enabled", "schema_version", "tensors", "initialization", "reset", "clone_semantics"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "schema_version": {"type": "string", "minLength": 1},
+        "tensors": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/state_tensor"}
+        },
+        "initialization": {"type": "string", "minLength": 1},
+        "reset": {"type": "string", "minLength": 1},
+        "clone_semantics": {"type": "string", "minLength": 1},
+        "exception_decision": {"type": "string", "minLength": 1}
+      }
+    },
+    "state_tensor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "shape", "dtype"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "shape": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"oneOf": [{"type": "integer", "minimum": 1}, {"type": "string", "minLength": 1}]}
+        },
+        "dtype": {"enum": ["float16", "bfloat16", "float32", "float64"]},
+        "persistent": {"type": "boolean"}
+      }
+    },
+    "frozen_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module_id", "compatibility_version", "interface_id", "freeze_required"],
+      "properties": {
+        "module_id": {"type": "string", "minLength": 1},
+        "compatibility_version": {"type": "string", "minLength": 1},
+        "interface_id": {"type": "string", "minLength": 1},
+        "freeze_required": {"const": true}
+      }
+    },
+    "causal_dependency": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["module_id", "compatibility_version", "interface_id", "state_relation"],
+      "properties": {
+        "module_id": {"type": "string", "minLength": 1},
+        "compatibility_version": {"type": "string", "minLength": 1},
+        "interface_id": {"type": "string", "minLength": 1},
+        "state_relation": {"enum": ["none", "immutable_snapshot", "same_live_state"]}
+      }
+    },
+    "test_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["test_id", "metric", "pass_criterion"],
+        "properties": {
+          "test_id": {"type": "string", "minLength": 1},
+          "metric": {"type": "string", "minLength": 1},
+          "pass_criterion": {"type": "string", "minLength": 1},
+          "non_target_guards": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "graph_schema": "nmcm.graph/v2",
+  "graph_id": "foundation_a1b",
+  "graph_version": "2.0.0",
+  "execution_mode": "admitted",
+  "provider_admissions": [{"node": "a", "role": "baseline", "consumer_node": "b", "fixture_id": "foundation0-heldout-seed4203/v1", "fixture_digest": "5baf7abce644d37907a5c8cfef10ba25ba01a79d4e05858c7d624e82f5ae67a0", "consumer_artifact_digest": "1c135fcc4f9cd270e643f7957276ff46e1c717d81bc3f7bde3a2089d124432ee", "thresholds_digest": "f44d52b3417d2dbedc6895dee727a4045e7d4c9fabc8b5403cee638dd336b33e"}],
+  "nodes": [
+    {"node_id": "a", "module_id": "synthetic.a1", "module_version": "1.0.0"},
+    {"node_id": "b", "module_id": "synthetic.b", "module_version": "1.1.0"}
+  ],
+  "edges": [
+    {"source": {"node": "$input", "port": "x"}, "target": {"node": "a", "port": "stimulus"}},
+    {"source": {"node": "a", "port": "dense_latent"}, "target": {"node": "b", "port": "dense_latent"}}
+  ],
+  "outputs": [
+    {"source": {"node": "a", "port": "dense_latent"}, "name": "dense_latent"},
+    {"source": {"node": "b", "port": "task_logits"}, "name": "task_logits"}
+  ]
+}

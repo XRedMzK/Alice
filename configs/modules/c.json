@@ -1,0 +1,122 @@
+{
+  "manifest_schema": "nmcm.module/v1alpha1",
+  "module_id": "synthetic.c",
+  "module_version": "1.0.0",
+  "purpose": {
+    "summary": "Independent recurrent side consumer attached to A through graph configuration only.",
+    "scientific_hypothesis": "A new neural population can consume the declared A interface without hidden mutation of existing A/B implementation, parameters, or state.",
+    "non_goals": ["feedback into A or B", "task improvement", "semantic orchestration", "production capability"]
+  },
+  "input_interfaces": [
+    {"interface_id": "dense_latent", "latent_schema_id": "dense_latent/v1", "multiplicity": "one", "description": "Read-only fan-out of A dense latent."}
+  ],
+  "output_interfaces": [
+    {"interface_id": "side_latent", "latent_schema_id": "side_latent/v1", "multiplicity": "one", "description": "Independent recurrent side population in R16."}
+  ],
+  "input_latent_schema": {
+    "dense_latent": {
+      "schema_version": "dense_latent/v1",
+      "representation": "dense_distributed",
+      "representation_contract_id": "nmcm.synthetic.r32.canonical_basis/v1",
+      "normalization": "teacher tanh basis; no per-sample normalization",
+      "tensors": [{"name": "value", "rank": 3, "shape": ["batch", "time", 32], "dtype": "float32", "range": "finite"}]
+    }
+  },
+  "output_latent_schema": {
+    "side_latent": {
+      "schema_version": "side_latent/v1",
+      "representation": "dense_distributed",
+      "representation_contract_id": "nmcm.synthetic.side.r16/v1",
+      "normalization": "tanh side basis",
+      "tensors": [{"name": "value", "rank": 3, "shape": ["batch", "time", 16], "dtype": "float32", "range": "[-1,1]"}]
+    }
+  },
+  "private_state_schema": {
+    "enabled": true,
+    "schema_version": "state/v1",
+    "tensors": [{"name": "hidden", "shape": ["batch", 16], "dtype": "float32", "persistent": false}],
+    "initialization": "zero at graph-run boundary",
+    "reset": "explicit whole-tensor zero reset",
+    "clone_semantics": "detached storage-disjoint tensor copy"
+  },
+  "persistent_state_schema": {
+    "enabled": false,
+    "schema_version": "persistent/none-v1",
+    "tensors": [],
+    "initialization": "not applicable",
+    "reset": "not applicable",
+    "clone_semantics": "not applicable"
+  },
+  "trainable_parameters": {
+    "estimated_count": 784,
+    "estimated_bytes": 3136,
+    "groups": [{"name": "recurrent_side_core", "trainable_under": ["local_trainable"]}]
+  },
+  "frozen_dependencies": [],
+  "update_frequency": {"unit": "sequence", "value": 1, "phase_offset": 0},
+  "causal_dependencies": [
+    {"module_id": "synthetic.a1", "compatibility_version": "dense_latent/v1", "interface_id": "dense_latent", "state_relation": "immutable_snapshot"}
+  ],
+  "plasticity_policy": {
+    "default_mode": "frozen",
+    "allowed_modes": ["frozen", "local_trainable"],
+    "state_update_during_frozen_eval": true,
+    "constraints": ["C receives no mutable reference to A output or state"]
+  },
+  "checkpoint_schema": {
+    "schema_version": "nmcm.shard/v2",
+    "shard_format": "safetensors",
+    "includes": ["parameters", "private_state"],
+    "integrity": "sha256",
+    "atomic_write": true,
+    "migration_id": null
+  },
+  "resource_budget": {
+    "parameter_bytes": 3136,
+    "private_state_bytes": 64,
+    "persistent_state_bytes": 0,
+    "estimated_active_vram_peak_mib": 0,
+    "incremental_active_vram_reservation_mib": 0,
+    "estimated_gpu_utilization_contribution_percent": 0,
+    "latency_p95_budget_ms": 250,
+    "offload_transfer_bytes": 3200,
+    "measurement_method": "exact owned CPU tensor bytes; GPU NOT_RUN",
+    "measurement_workload": "batch=1,time=8,float32",
+    "measurement_window": "one complete sequence"
+  },
+  "local_acceptance_tests": [
+    {"test_id": "cpu.10.c_add_remove", "metric": "standalone deterministic output and recurrent state use", "pass_criterion": "replay exact; carried and reset state produce different continuation"}
+  ],
+  "causal_ablation_tests": [
+    {"test_id": "cpu.10.c_add_remove", "metric": "C input lesion", "pass_criterion": "C output changes", "non_target_guards": ["A/B output, private state and parameter digests remain exactly equal"]}
+  ],
+  "integration_tests": [
+    {"test_id": "cpu.10.c_add_remove", "metric": "AB versus ABC graph comparison", "pass_criterion": "A/B output and private state exact; A/B implementation and parameter digests unchanged"}
+  ],
+  "parallel_execution_safety": {
+    "mode": "independent",
+    "shared_mutable_neural_state": false,
+    "candidate_isolation": "C owns all parameters and private state",
+    "artifact_isolation": "C has an independent checkpoint shard and telemetry identity"
+  },
+  "offload_policy": {
+    "allowed": true,
+    "destinations": ["gpu", "ram"],
+    "state_components": ["parameters", "private_state"],
+    "safe_boundary": "sequence boundary after state snapshot",
+    "max_round_trip_ms": 900000,
+    "state_tolerance": 0,
+    "max_transfers_per_minute": 4
+  },
+  "compatibility_version": "side_latent/v1",
+  "telemetry": {
+    "schema_version": "nmcm.telemetry/v2",
+    "required_metrics": ["module_id", "module_version", "compatibility_version", "lifecycle_state", "current_experiment", "latency_ms", "cpu_time_ms", "gpu_time_ms", "active_vram_mib", "active_vram_peak_mib", "gpu_utilization_mean_percent", "gpu_utilization_peak_percent", "process_peak_memory_bytes", "parameter_bytes", "private_state_bytes", "state_statistics", "activation_statistics", "output_statistics", "checkpoint_schema_version", "state_schema_version", "snapshot_id", "local_status", "transfer_statistics"],
+    "sampling_policy": "one post-forward event per executed module; GPU values null on CPU"
+  },
+  "provenance": {
+    "human_spec": "MODULE_CONTRACT.md and configs/foundation0_cpu.json",
+    "source_revision": "foundation0-cpu-v1-working-tree",
+    "created_by": "Codex under user-approved temp.md"
+  }
+}

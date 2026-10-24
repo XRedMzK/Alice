@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "baseline_id": "nmcm.foundation0.cpu/v2",
+  "status": "FROZEN_BEFORE_FORMAL_REQUALIFICATION",
+  "authority": "temp.md SHA256 35bfe4fb3c83ac23be5a2a46f1d8a0e73af328b41f1cdfbfda5fd76b8247c1a6",
+  "revision": {
+    "supersedes": "nmcm.foundation0.cpu/v1",
+    "prior_evidence": "INVALIDATED_DURING_PRE_FINAL_AUDIT",
+    "acceptance_thresholds_changed": false,
+    "reason": "Remove a decorative direct B path and make B private recurrence causally necessary; generate the frozen task from a recurrent oracle with a preregistered absolute score margin of 0.15."
+  },
+  "behavioral_admission": {
+    "fixture_id": "foundation0-heldout-seed4203/v1",
+    "fixture_digest": "5baf7abce644d37907a5c8cfef10ba25ba01a79d4e05858c7d624e82f5ae67a0",
+    "frozen_b_artifact_digest": "1c135fcc4f9cd270e643f7957276ff46e1c717d81bc3f7bde3a2089d124432ee",
+    "thresholds_digest": "f44d52b3417d2dbedc6895dee727a4045e7d4c9fabc8b5403cee638dd336b33e"
+  },
+  "device": "cpu",
+  "dtype": "float32",
+  "dimensions": {
+    "stimulus": 16,
+    "latent": 32,
+    "sequence_length": 8,
+    "task_classes": 2
+  },
+  "teacher": {
+    "seed": 4101,
+    "equation": "z_t=tanh(P*x_t+Q*z_(t-1))",
+    "recurrence_spectral_radius": 0.45
+  },
+  "splits": {
+    "train": {"seed": 4201, "samples": 4096},
+    "dev": {"seed": 4202, "samples": 512},
+    "heldout": {"seed": 4203, "samples": 1024},
+    "antipodal_pairs": true,
+    "task_score_absolute_margin": 0.15
+  },
+  "training": {
+    "a1": {"seed": 4401, "optimizer": "Adam", "steps": 180, "learning_rate": 0.012},
+    "a2": {"seed": 4402, "optimizer": "Adam", "steps": 180, "learning_rate": 0.012},
+    "b": {"seed": 4403, "optimizer": "Adam", "steps": 240, "learning_rate": 0.015},
+    "gradient_clip_norm": 5.0,
+    "heldout_visible_to_trainers": false
+  },
+  "thresholds": {
+    "a1_a2_mean_cosine_min": 0.98,
+    "a1_a2_normalized_rmse_max": 0.10,
+    "b_a1_accuracy_min": 0.95,
+    "b_a2_accuracy_min": 0.94,
+    "b_a1_a2_accuracy_absolute_difference_max": 0.02,
+    "a3_b_accuracy_drop_min": 0.20,
+    "targeted_ablation_accuracy_drop_min": 0.25
+  },
+  "negative_control": {
+    "a3_transform": "R=-I_32",
+    "structural_contract_claim": "dense_latent/v1",
+    "behavioral_gate_must_reject": true,
+    "distribution_relation": "z_A3=-z_A1; density, covariance spectrum, norm and variance shares preserved exactly"
+  },
+  "replacement_boundary": "zero-reset private state",
+  "ablation": "replace the complete A-to-B latent rollout with zeros from an identical reset snapshot",
+  "gpu_qualification": "NOT_RUN_STOP_BEFORE_GPU"
+}

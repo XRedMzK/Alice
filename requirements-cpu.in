@@ -1,0 +1,9 @@
+--index-url https://pypi.org/simple
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# FOUNDATION_0 CPU qualification only. CUDA uses a separate future profile.
+torch==2.13.0+cpu
+numpy==2.5.2
+safetensors==0.8.0
+jsonschema==4.26.0
+pytest==9.1.1

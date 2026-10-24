@@ -1,0 +1,126 @@
+{
+  "manifest_schema": "nmcm.module/v1alpha1",
+  "module_id": "synthetic.b",
+  "module_version": "1.1.0",
+  "purpose": {
+    "summary": "Fully recurrent downstream binary task population trained on A1 latents and then frozen; logits are read only from owned recurrent state.",
+    "scientific_hypothesis": "Frozen downstream behavior and a causal recurrent-core/state lesion distinguish functional latent compatibility from structural compatibility alone.",
+    "non_goals": ["truth judgment", "global reward", "semantic routing", "consumer retraining during replacement"]
+  },
+  "input_interfaces": [
+    {"interface_id": "dense_latent", "latent_schema_id": "dense_latent/v1", "multiplicity": "one", "description": "Canonical distributed R32 latent."}
+  ],
+  "output_interfaces": [
+    {"interface_id": "task_logits", "latent_schema_id": "task_logits/v1", "multiplicity": "one", "description": "Two dense evaluator logits; labels never enter the graph."}
+  ],
+  "input_latent_schema": {
+    "dense_latent": {
+      "schema_version": "dense_latent/v1",
+      "representation": "dense_distributed",
+      "representation_contract_id": "nmcm.synthetic.r32.canonical_basis/v1",
+      "normalization": "teacher tanh basis; no per-sample normalization",
+      "tensors": [{"name": "value", "rank": 3, "shape": ["batch", "time", 32], "dtype": "float32", "range": "finite"}]
+    }
+  },
+  "output_latent_schema": {
+    "task_logits": {
+      "schema_version": "task_logits/v1",
+      "representation": "dense_distributed",
+      "representation_contract_id": "nmcm.synthetic.binary_logits/v1",
+      "normalization": "antisymmetric unnormalized logits",
+      "tensors": [{"name": "value", "rank": 3, "shape": ["batch", "time", 2], "dtype": "float32", "range": "finite"}]
+    }
+  },
+  "private_state_schema": {
+    "enabled": true,
+    "schema_version": "state/v1",
+    "tensors": [{"name": "hidden", "shape": ["batch", 32], "dtype": "float32", "persistent": false}],
+    "initialization": "zero at evaluation snapshot boundary",
+    "reset": "explicit whole-tensor zero reset",
+    "clone_semantics": "detached storage-disjoint tensor copy"
+  },
+  "persistent_state_schema": {
+    "enabled": false,
+    "schema_version": "persistent/none-v1",
+    "tensors": [],
+    "initialization": "not applicable",
+    "reset": "not applicable",
+    "clone_semantics": "not applicable"
+  },
+  "trainable_parameters": {
+    "estimated_count": 2080,
+    "estimated_bytes": 8320,
+    "groups": [
+      {"name": "recurrent_core", "trainable_under": ["local_trainable"]},
+      {"name": "task_head", "trainable_under": ["local_trainable"]}
+    ]
+  },
+  "frozen_dependencies": [],
+  "update_frequency": {"unit": "sequence", "value": 1, "phase_offset": 0},
+  "causal_dependencies": [
+    {"module_id": "synthetic.a1", "compatibility_version": "dense_latent/v1", "interface_id": "dense_latent", "state_relation": "immutable_snapshot"}
+  ],
+  "plasticity_policy": {
+    "default_mode": "frozen",
+    "allowed_modes": ["frozen", "local_trainable"],
+    "state_update_during_frozen_eval": true,
+    "constraints": ["after A1 training B is frozen before any A2/A3/ablation evaluation", "replacement optimizer steps equal zero"]
+  },
+  "checkpoint_schema": {
+    "schema_version": "nmcm.shard/v2",
+    "shard_format": "safetensors",
+    "includes": ["parameters", "private_state"],
+    "integrity": "sha256",
+    "atomic_write": true,
+    "migration_id": null
+  },
+  "resource_budget": {
+    "parameter_bytes": 8320,
+    "private_state_bytes": 128,
+    "persistent_state_bytes": 0,
+    "estimated_active_vram_peak_mib": 0,
+    "incremental_active_vram_reservation_mib": 0,
+    "estimated_gpu_utilization_contribution_percent": 0,
+    "latency_p95_budget_ms": 250,
+    "offload_transfer_bytes": 8448,
+    "measurement_method": "exact owned CPU tensor bytes; GPU NOT_RUN",
+    "measurement_workload": "batch=1,time=8,float32",
+    "measurement_window": "one complete sequence"
+  },
+  "local_acceptance_tests": [
+    {"test_id": "cpu.06.a1_to_b", "metric": "heldout task accuracy after local training", "pass_criterion": "accuracy>=0.95 and parameters freeze afterward"}
+  ],
+  "causal_ablation_tests": [
+    {"test_id": "cpu.06.b_recurrent_core", "metric": "accuracy loss after lesioning B input and recurrent transforms plus carried-state comparison", "pass_criterion": "absolute loss>=0.25 and carried-state logits differ from reset-state logits"},
+    {"test_id": "cpu.09.targeted_ablation", "metric": "accuracy loss under complete A-to-B edge lesion", "pass_criterion": "absolute loss>=0.25", "non_target_guards": ["B parameter digest unchanged", "sham equals intact exactly"]}
+  ],
+  "integration_tests": [
+    {"test_id": "cpu.07.a2_replacement", "metric": "accuracy with independent A2 provider", "pass_criterion": "accuracy>=0.94 and difference from A1<=0.02 without B updates"}
+  ],
+  "parallel_execution_safety": {
+    "mode": "isolated_clone_required",
+    "shared_mutable_neural_state": false,
+    "candidate_isolation": "each candidate process loads an independent B instance and state from immutable bytes",
+    "artifact_isolation": "unique worker artifact root and run ID"
+  },
+  "offload_policy": {
+    "allowed": true,
+    "destinations": ["gpu", "ram"],
+    "state_components": ["parameters", "private_state"],
+    "safe_boundary": "sequence boundary after state snapshot",
+    "max_round_trip_ms": 900000,
+    "state_tolerance": 0,
+    "max_transfers_per_minute": 4
+  },
+  "compatibility_version": "task_logits/v1",
+  "telemetry": {
+    "schema_version": "nmcm.telemetry/v2",
+    "required_metrics": ["module_id", "module_version", "compatibility_version", "lifecycle_state", "current_experiment", "latency_ms", "cpu_time_ms", "gpu_time_ms", "active_vram_mib", "active_vram_peak_mib", "gpu_utilization_mean_percent", "gpu_utilization_peak_percent", "process_peak_memory_bytes", "parameter_bytes", "private_state_bytes", "state_statistics", "activation_statistics", "output_statistics", "checkpoint_schema_version", "state_schema_version", "snapshot_id", "local_status", "transfer_statistics"],
+    "sampling_policy": "one post-forward event per executed module; GPU values null on CPU"
+  },
+  "provenance": {
+    "human_spec": "MODULE_CONTRACT.md and configs/foundation0_cpu.json",
+    "source_revision": "foundation0-cpu-v2-b-recurrent-revision",
+    "created_by": "Codex under user-approved temp.md"
+  }
+}

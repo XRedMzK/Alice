@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nmcm.foundation0.gpu_profile.schema/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema", "schema_version", "profile_id", "status", "authority",
+    "accepted_cpu_baseline", "environment", "runtime_policy",
+    "numerical_policy", "resource_policy", "workloads", "checkpoint_inputs",
+    "non_goals"
+  ],
+  "properties": {
+    "$schema": {"const": "https://json-schema.org/draft/2020-12/schema"},
+    "schema_version": {"const": "nmcm.foundation0.gpu_profile/v1"},
+    "profile_id": {"const": "nmcm.foundation0.gpu/v1"},
+    "status": {"const": "FROZEN_BEFORE_OFFICIAL_QUALIFICATION"},
+    "authority": {"$ref": "#/$defs/authority"},
+    "accepted_cpu_baseline": {"$ref": "#/$defs/cpuBaseline"},
+    "environment": {"$ref": "#/$defs/environment"},
+    "runtime_policy": {"type": "object"},
+    "numerical_policy": {"$ref": "#/$defs/numerical"},
+    "resource_policy": {"$ref": "#/$defs/resources"},
+    "workloads": {"type": "object"},
+    "checkpoint_inputs": {"type": "object"},
+    "non_goals": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["work_package", "temp_sha256"],
+      "properties": {
+        "work_package": {"const": "NMCM_V2_FOUNDATION_GPU_0"},
+        "temp_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "cpuBaseline": {
+      "type": "object", "additionalProperties": false,
+      "required": ["baseline_id", "acceptance_path", "acceptance_sha256", "results_path", "results_sha256", "junit_path", "junit_sha256"],
+      "properties": {
+        "baseline_id": {"const": "nmcm.foundation0.cpu/v2"},
+        "acceptance_path": {"type": "string", "minLength": 1},
+        "acceptance_sha256": {"$ref": "#/$defs/digest"},
+        "results_path": {"type": "string", "minLength": 1},
+        "results_sha256": {"$ref": "#/$defs/digest"},
+        "junit_path": {"type": "string", "minLength": 1},
+        "junit_sha256": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["python", "torch", "cuda_build", "device_index", "device_name", "compute_capability", "driver_version", "device_uuid", "total_memory_mib", "monitor"],
+      "properties": {
+        "python": {"type": "string"}, "torch": {"type": "string"},
+        "cuda_build": {"type": "string"}, "device_index": {"type": "integer", "minimum": 0},
+        "device_name": {"type": "string"},
+        "compute_capability": {"type": "array", "prefixItems": [{"type": "integer"}, {"type": "integer"}], "items": false},
+        "driver_version": {"type": "string"}, "device_uuid": {"type": "string"},
+        "total_memory_mib": {"type": "integer", "minimum": 1}, "monitor": {"type": "string"}
+      }
+    },
+    "numerical": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cpu_gpu_atol", "cpu_gpu_rtol", "same_device_replay", "placement_tensor_round_trip", "shape_dtype_finite", "argmax_accuracy_and_gate_decisions", "cpu_scientific_thresholds"],
+      "properties": {
+        "cpu_gpu_atol": {"const": 0.000001}, "cpu_gpu_rtol": {"const": 0.00001},
+        "same_device_replay": {"const": "torch.equal"},
+        "placement_tensor_round_trip": {"type": "string"},
+        "shape_dtype_finite": {"const": "exact"},
+        "argmax_accuracy_and_gate_decisions": {"const": "exact"},
+        "cpu_scientific_thresholds": {"const": "unchanged"}
+      }
+    },
+    "resources": {
+      "type": "object", "additionalProperties": false,
+      "required": ["hard_wall_seconds", "soft_wall_seconds", "maximum_utilization_percent", "utilization_interpretation", "maximum_active_vram_mib", "estimated_bundle_utilization_percent", "sample_period_seconds", "minimum_active_window_seconds", "minimum_valid_samples", "maximum_sample_age_seconds", "maximum_external_compute_memory_mib", "warmup_seconds", "offload_context_baseline_tolerance_mib", "unknown_or_monitor_error", "zero_gpu_estimates_in_cpu_manifests", "reservation_ledger_mib"],
+      "properties": {
+        "hard_wall_seconds": {"const": 900}, "soft_wall_seconds": {"const": 840},
+        "maximum_utilization_percent": {"const": 80},
+        "utilization_interpretation": {"type": "string"},
+        "maximum_active_vram_mib": {"const": 28672},
+        "estimated_bundle_utilization_percent": {"type": "number", "minimum": 0, "maximum": 80},
+        "sample_period_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "minimum_active_window_seconds": {"type": "number", "minimum": 31},
+        "minimum_valid_samples": {"type": "integer", "minimum": 31},
+        "maximum_sample_age_seconds": {"type": "number", "exclusiveMinimum": 0},
+        "maximum_external_compute_memory_mib": {"type": "number", "minimum": 0},
+        "warmup_seconds": {"type": "number", "minimum": 0},
+        "offload_context_baseline_tolerance_mib": {"type": "number", "minimum": 0},
+        "unknown_or_monitor_error": {"const": "fail_closed"},
+        "zero_gpu_estimates_in_cpu_manifests": {"const": "UNKNOWN_NOT_ZERO_RESERVATION"},
+        "reservation_ledger_mib": {
+          "type": "object", "additionalProperties": false,
+          "required": ["cuda_context", "telemetry_and_transport", "bundle_workspace", "per_mutable_module_instance", "safety_margin"],
+          "properties": {
+            "cuda_context": {"type": "number", "minimum": 0},
+            "telemetry_and_transport": {"type": "number", "minimum": 0},
+            "bundle_workspace": {"type": "number", "minimum": 0},
+            "per_mutable_module_instance": {"type": "number", "minimum": 0},
+            "safety_margin": {"type": "number", "minimum": 512}
+          }
+        }
+      }
+    }
+  }
+}

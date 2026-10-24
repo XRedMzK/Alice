@@ -1,0 +1,14 @@
+[project]
+name = "alice-foundation"
+version = "0.1.0"
+description = "Clean Foundation source and research direction for Alice"
+requires-python = ">=3.12,<3.13"
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+pythonpath = ["src"]
+testpaths = ["tests"]
+markers = [
+  "cpu: deterministic CPU qualification",
+  "integration: bounded multi-module integration",
+]

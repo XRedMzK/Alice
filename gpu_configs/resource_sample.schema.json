@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nmcm/gpu/resource_sample.schema.json",
+  "title": "NMCM FOUNDATION_0 GPU resource sample",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "timestamp_utc",
+    "monotonic_ns",
+    "device_index",
+    "device_uuid",
+    "status",
+    "valid",
+    "monitor_backend",
+    "gpu_utilization_percent",
+    "device_memory_used_mib",
+    "device_memory_free_mib",
+    "device_memory_total_mib",
+    "project_active_vram_mib",
+    "admitted_pids",
+    "observed_project_pids",
+    "missing_admitted_pids",
+    "external_compute_pids",
+    "external_compute_memory_mib",
+    "process_memory_mib",
+    "error"
+  ],
+  "properties": {
+    "schema_version": {"const": "nmcm.gpu.resource_sample/v1"},
+    "timestamp_utc": {"type": "string", "format": "date-time"},
+    "monotonic_ns": {"type": "integer", "minimum": 0},
+    "device_index": {"type": "integer", "minimum": 0},
+    "device_uuid": {"type": "string", "pattern": "^GPU-[A-Za-z0-9-]+$"},
+    "status": {"enum": ["VALID", "UNKNOWN", "ERROR"]},
+    "valid": {"type": "boolean"},
+    "monitor_backend": {"type": "string", "minLength": 1},
+    "gpu_utilization_percent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+    "device_memory_used_mib": {"type": ["number", "null"], "minimum": 0},
+    "device_memory_free_mib": {"type": ["number", "null"], "minimum": 0},
+    "device_memory_total_mib": {"type": ["number", "null"], "exclusiveMinimum": 0},
+    "project_active_vram_mib": {"type": ["number", "null"], "minimum": 0},
+    "admitted_pids": {"$ref": "#/$defs/pid_array"},
+    "observed_project_pids": {"$ref": "#/$defs/pid_array"},
+    "missing_admitted_pids": {"$ref": "#/$defs/pid_array"},
+    "external_compute_pids": {"$ref": "#/$defs/pid_array"},
+    "external_compute_memory_mib": {"type": ["number", "null"], "minimum": 0},
+    "process_memory_mib": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[1-9][0-9]*$"},
+      "additionalProperties": {"type": "number", "minimum": 0}
+    },
+    "error": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"valid": {"const": true}}, "required": ["valid"]},
+      "then": {
+        "properties": {
+          "status": {"const": "VALID"},
+          "gpu_utilization_percent": {"type": "number"},
+          "device_memory_used_mib": {"type": "number"},
+          "device_memory_free_mib": {"type": "number"},
+          "device_memory_total_mib": {"type": "number", "exclusiveMinimum": 0},
+          "project_active_vram_mib": {"type": "number"},
+          "external_compute_memory_mib": {"type": "number"},
+          "error": {"type": "null"}
+        }
+      },
+      "else": {
+        "properties": {
+          "status": {"enum": ["UNKNOWN", "ERROR"]},
+          "error": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "pid_array": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "integer", "minimum": 1}
+    }
+  }
+}

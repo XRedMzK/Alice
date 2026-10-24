@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nmcm/module_shard.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "instance_id", "module_id", "module_version",
+    "compatibility_version", "state_schema_version", "snapshot_id",
+    "logical_step", "tensor_file", "tensor_sha256", "tensor_bytes",
+    "parameter_keys", "private_state_keys", "private_state_spec"
+  ],
+  "properties": {
+    "schema_version": {"const": "nmcm.shard/v2"},
+    "instance_id": {"type": "string", "pattern": "^[a-z0-9_.-]+$"},
+    "module_id": {"type": "string", "minLength": 1},
+    "module_version": {"type": "string", "minLength": 1},
+    "compatibility_version": {"type": "string", "minLength": 1},
+    "state_schema_version": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "pattern": "^[a-z0-9_.-]+$"},
+    "logical_step": {"type": "integer", "minimum": 0},
+    "tensor_file": {"type": "string", "pattern": "^[a-z0-9_.-]+[.]safetensors$"},
+    "tensor_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tensor_bytes": {"type": "integer", "minimum": 1},
+    "parameter_keys": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "private_state_keys": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "private_state_spec": {
+      "type": "object", "minProperties": 1,
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false,
+        "required": ["shape", "dtype"],
+        "properties": {
+          "shape": {
+            "type": "array", "minItems": 1,
+            "items": {"type": "integer", "minimum": 1}
+          },
+          "dtype": {"enum": ["torch.float32"]}
+        }
+      }
+    }
+  }
+}

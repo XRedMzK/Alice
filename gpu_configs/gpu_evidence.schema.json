@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "nmcm.foundation0.gpu_evidence.schema/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "status", "attempt_id", "profile", "environment",
+    "gate_matrix", "parity", "placement", "module_shards", "checkpoint",
+    "telemetry", "concurrency", "resources", "timing", "digests", "non_goals"
+  ],
+  "properties": {
+    "schema_version": {"const": "nmcm.foundation0.gpu_evidence/v1"},
+    "status": {"enum": ["PASS", "FAIL", "GPU_ENVIRONMENT_BLOCKED", "INFRA_FAIL", "RESOURCE_FAIL"]},
+    "attempt_id": {"type": "string", "minLength": 1},
+    "profile": {"type": "object"},
+    "environment": {"type": "object"},
+    "gate_matrix": {
+      "type": "object", "minProperties": 15, "maxProperties": 15,
+      "propertyNames": {"pattern": "^G-(0[1-9]|1[0-5])$"},
+      "additionalProperties": {
+        "type": "object", "required": ["status", "checks"],
+        "properties": {"status": {"enum": ["PASS", "FAIL"]}, "checks": {"type": "object"}}
+      }
+    },
+    "parity": {"type": "object"}, "placement": {"type": "object"},
+    "module_shards": {"type": "object"}, "checkpoint": {"type": "object"},
+    "telemetry": {"type": "object"}, "concurrency": {"type": "object"},
+    "resources": {"type": "object"}, "timing": {"type": "object"},
+    "digests": {"type": "object"}, "non_goals": {"type": "object"}
+  }
+}

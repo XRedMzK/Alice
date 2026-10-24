@@ -1,0 +1,594 @@
+{
+  "scope": "Clean source selection, not original Git history or complete research workspace",
+  "source_record": "M1 research snapshot plus original owner-maintained Foundation workspace",
+  "copied_files": [
+    {
+      "origin_path": "ARCHITECTURE.md",
+      "public_path": "docs/FOUNDATION_ARCHITECTURE_V0.md",
+      "origin_sha256": "fadbb16d7ff256abd0a46af4ff84e5b21b4cb0348b649491c6d2f3266cc7afb8",
+      "public_sha256": "fadbb16d7ff256abd0a46af4ff84e5b21b4cb0348b649491c6d2f3266cc7afb8",
+      "origin_bytes": 22245,
+      "public_bytes": 22245,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "MODULE_CONTRACT.md",
+      "public_path": "MODULE_CONTRACT.md",
+      "origin_sha256": "5e6da4f9a314120b45fe193c1f581487b6a667e1e9c7fac9fa5504cbb05a438f",
+      "public_sha256": "5e6da4f9a314120b45fe193c1f581487b6a667e1e9c7fac9fa5504cbb05a438f",
+      "origin_bytes": 15933,
+      "public_bytes": 15933,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "RESEARCH_PROTOCOL.md",
+      "public_path": "RESEARCH_PROTOCOL.md",
+      "origin_sha256": "4c3a450c9a38d7a0e34fb21856bf4e625a29d57ebe9dae01d157b490c1c498c8",
+      "public_sha256": "4c3a450c9a38d7a0e34fb21856bf4e625a29d57ebe9dae01d157b490c1c498c8",
+      "origin_bytes": 15787,
+      "public_bytes": 15787,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "RESOURCE_POLICY.md",
+      "public_path": "RESOURCE_POLICY.md",
+      "origin_sha256": "32c648d3d7f6804ed116f4c2224c56630e689fc7aab01a8d3b727c9862396a39",
+      "public_sha256": "32c648d3d7f6804ed116f4c2224c56630e689fc7aab01a8d3b727c9862396a39",
+      "origin_bytes": 11462,
+      "public_bytes": 11462,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/README.md",
+      "public_path": "configs/README.md",
+      "origin_sha256": "6fcf7acfef75f28e93904df4b89605831bd90dd2ed448d77be7a5e30d6906f61",
+      "public_sha256": "6fcf7acfef75f28e93904df4b89605831bd90dd2ed448d77be7a5e30d6906f61",
+      "origin_bytes": 500,
+      "public_bytes": 500,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/foundation0_cpu.json",
+      "public_path": "configs/foundation0_cpu.json",
+      "origin_sha256": "cc94b4b1f8e10d2d464f773828f6a29c37dcd62a1d6a801edcc30692f3eeb6e7",
+      "public_sha256": "cc94b4b1f8e10d2d464f773828f6a29c37dcd62a1d6a801edcc30692f3eeb6e7",
+      "origin_bytes": 2614,
+      "public_bytes": 2614,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/foundation0_cpu_acceptance.json",
+      "public_path": "configs/foundation0_cpu_acceptance.json",
+      "origin_sha256": "373cb41535507e12e3dc767526a98bc5dfe694e772d0767a994335bcbbb93ddb",
+      "public_sha256": "373cb41535507e12e3dc767526a98bc5dfe694e772d0767a994335bcbbb93ddb",
+      "origin_bytes": 3786,
+      "public_bytes": 3786,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/graph.schema.json",
+      "public_path": "configs/graph.schema.json",
+      "origin_sha256": "21f55bcbc62b72645dc01afcabc4b6b643e743415a121751b06ab0b2d23f344d",
+      "public_sha256": "21f55bcbc62b72645dc01afcabc4b6b643e743415a121751b06ab0b2d23f344d",
+      "origin_bytes": 2858,
+      "public_bytes": 2858,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/graphs/foundation_a1b.json",
+      "public_path": "configs/graphs/foundation_a1b.json",
+      "origin_sha256": "d160d8095307d24276f674c48df805c99694d8952f25aa8f8966acb99228258b",
+      "public_sha256": "d160d8095307d24276f674c48df805c99694d8952f25aa8f8966acb99228258b",
+      "origin_bytes": 1096,
+      "public_bytes": 1096,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/graphs/foundation_a1bc.json",
+      "public_path": "configs/graphs/foundation_a1bc.json",
+      "origin_sha256": "c46b5c88777e8cc10a51f3cc9f45398a9f40fec24703d043d86441c441d9e24b",
+      "public_sha256": "c46b5c88777e8cc10a51f3cc9f45398a9f40fec24703d043d86441c441d9e24b",
+      "origin_bytes": 1355,
+      "public_bytes": 1355,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/graphs/foundation_a2b.json",
+      "public_path": "configs/graphs/foundation_a2b.json",
+      "origin_sha256": "7b640d2d660fff54520ff87f1d6b4d48aa16722d87c300a76dfe2051e753628c",
+      "public_sha256": "7b640d2d660fff54520ff87f1d6b4d48aa16722d87c300a76dfe2051e753628c",
+      "origin_bytes": 1099,
+      "public_bytes": 1099,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/graphs/foundation_a3b.json",
+      "public_path": "configs/graphs/foundation_a3b.json",
+      "origin_sha256": "8f48a7abeb1a2106d678d00d6c6725164f42bf4909ab022b5ef52055e07584fd",
+      "public_sha256": "8f48a7abeb1a2106d678d00d6c6725164f42bf4909ab022b5ef52055e07584fd",
+      "origin_bytes": 1118,
+      "public_bytes": 1118,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/module_manifest.schema.json",
+      "public_path": "configs/module_manifest.schema.json",
+      "origin_sha256": "05cbb448194b05b9faa5b4adc43c9cca9e09323ba3f5ed7ed2685d63427f6ac0",
+      "public_sha256": "05cbb448194b05b9faa5b4adc43c9cca9e09323ba3f5ed7ed2685d63427f6ac0",
+      "origin_bytes": 18703,
+      "public_bytes": 18703,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/module_shard.schema.json",
+      "public_path": "configs/module_shard.schema.json",
+      "origin_sha256": "fa6d6c3318f92220ba38657b23b341ae2bc148f5f6177311cd5f23e756a222ff",
+      "public_sha256": "fa6d6c3318f92220ba38657b23b341ae2bc148f5f6177311cd5f23e756a222ff",
+      "origin_bytes": 1882,
+      "public_bytes": 1882,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/modules/a1.json",
+      "public_path": "configs/modules/a1.json",
+      "origin_sha256": "f8d311a61507455578cf38d826055015a8ed9728f29a1fa628817f190c33b4d1",
+      "public_sha256": "f8d311a61507455578cf38d826055015a8ed9728f29a1fa628817f190c33b4d1",
+      "origin_bytes": 5714,
+      "public_bytes": 5714,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/modules/a2.json",
+      "public_path": "configs/modules/a2.json",
+      "origin_sha256": "ea42e64e89fa56330e76b9931a9946c85d318bc148db7ed88db4870e571018ef",
+      "public_sha256": "ea42e64e89fa56330e76b9931a9946c85d318bc148db7ed88db4870e571018ef",
+      "origin_bytes": 5910,
+      "public_bytes": 5910,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/modules/a3.json",
+      "public_path": "configs/modules/a3.json",
+      "origin_sha256": "580cc19bb9d74715690267cf7b1428f7a74676a31f8aecccc5fe1fa0d472640f",
+      "public_sha256": "580cc19bb9d74715690267cf7b1428f7a74676a31f8aecccc5fe1fa0d472640f",
+      "origin_bytes": 5781,
+      "public_bytes": 5781,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/modules/b.json",
+      "public_path": "configs/modules/b.json",
+      "origin_sha256": "1abd354a00911b5e6e1018e4016a1c5c425640f3d5eba51b581d8e34a8882962",
+      "public_sha256": "1abd354a00911b5e6e1018e4016a1c5c425640f3d5eba51b581d8e34a8882962",
+      "origin_bytes": 6393,
+      "public_bytes": 6393,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/modules/c.json",
+      "public_path": "configs/modules/c.json",
+      "origin_sha256": "ec53fa3a9e85ec442ffc5eef2e401a898ab705651a458b36c551b016b9ba949a",
+      "public_sha256": "ec53fa3a9e85ec442ffc5eef2e401a898ab705651a458b36c551b016b9ba949a",
+      "origin_bytes": 5886,
+      "public_bytes": 5886,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/telemetry_event.schema.json",
+      "public_path": "configs/telemetry_event.schema.json",
+      "origin_sha256": "8387647f44c9efb9db56ed4dc41670a6f0e4e3ddf5fdbfa96adfcbf7e37b5453",
+      "public_sha256": "8387647f44c9efb9db56ed4dc41670a6f0e4e3ddf5fdbfa96adfcbf7e37b5453",
+      "origin_bytes": 4108,
+      "public_bytes": 4108,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "configs/whole_checkpoint.schema.json",
+      "public_path": "configs/whole_checkpoint.schema.json",
+      "origin_sha256": "a1c4bb51a52e3bcf6314f6b0c38e7b736707af8870cb2acdc9bb18dbdb440f8a",
+      "public_sha256": "a1c4bb51a52e3bcf6314f6b0c38e7b736707af8870cb2acdc9bb18dbdb440f8a",
+      "origin_bytes": 1763,
+      "public_bytes": 1763,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "decisions/0001-nmcm-v2-foundation-boundary.md",
+      "public_path": "decisions/0001-nmcm-v2-foundation-boundary.md",
+      "origin_sha256": "0f39e0101bb8ff248ada43b9c72a49ed532752485fbef308f0e0dab12bfbaf48",
+      "public_sha256": "0f39e0101bb8ff248ada43b9c72a49ed532752485fbef308f0e0dab12bfbaf48",
+      "origin_bytes": 1904,
+      "public_bytes": 1904,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "decisions/0002-foundation-gpu-qualification-policy.md",
+      "public_path": "decisions/0002-foundation-gpu-qualification-policy.md",
+      "origin_sha256": "282e20e3bcd03f35b910d0c90311959f5665de7eac968a7fda685903e0d33a6d",
+      "public_sha256": "282e20e3bcd03f35b910d0c90311959f5665de7eac968a7fda685903e0d33a6d",
+      "origin_bytes": 2635,
+      "public_bytes": 2635,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "docs/FOUNDATION_0_CPU_ACCEPTANCE.md",
+      "public_path": "docs/FOUNDATION_0_CPU_ACCEPTANCE.md",
+      "origin_sha256": "7938ed59e15c0e584ab8217dbd7ca95ff0ee92ce804d3bad9f76a7a8d54c4f82",
+      "public_sha256": "7938ed59e15c0e584ab8217dbd7ca95ff0ee92ce804d3bad9f76a7a8d54c4f82",
+      "origin_bytes": 12226,
+      "public_bytes": 12226,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "docs/FOUNDATION_0_GPU_ACCEPTANCE.md",
+      "public_path": "docs/FOUNDATION_0_GPU_ACCEPTANCE.md",
+      "origin_sha256": "ef51db8e41bb9f777668756225376269be3d91fc26657e02e762410502b876a9",
+      "public_sha256": "74e91e690deedd8363636dae2be8a21691df4322fbe6b6cb23ec11b843375037",
+      "origin_bytes": 11861,
+      "public_bytes": 11995,
+      "transform": "PUBLIC_DERIVATIVE_HOST_GPU_UUID_REDACTED_WITH_EXPLICIT_NOTE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "docs/FOUNDATION_0_IMPLEMENTATION_PLAN.md",
+      "public_path": "docs/FOUNDATION_0_IMPLEMENTATION_PLAN.md",
+      "origin_sha256": "f7b184148d739a2577bbe1ed0112f20a7f4f4e12ea129b8e53188b5e75d971df",
+      "public_sha256": "f7b184148d739a2577bbe1ed0112f20a7f4f4e12ea129b8e53188b5e75d971df",
+      "origin_bytes": 10150,
+      "public_bytes": 10150,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "experimental-release-1/checkout/LICENSE",
+      "public_path": "LICENSE",
+      "origin_sha256": "25dd352299f6336fa878a0e45bb78481e2c07b4bb4a349551cebc3ed6f44d5cb",
+      "public_sha256": "25dd352299f6336fa878a0e45bb78481e2c07b4bb4a349551cebc3ed6f44d5cb",
+      "origin_bytes": 1065,
+      "public_bytes": 1065,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "gpu_configs/foundation0_gpu.schema.json",
+      "public_path": "gpu_configs/foundation0_gpu.schema.json",
+      "origin_sha256": "e521fd00dcfb738a33f44aad144ac2713086366cdd4b3afe6c79879ed12603b8",
+      "public_sha256": "e521fd00dcfb738a33f44aad144ac2713086366cdd4b3afe6c79879ed12603b8",
+      "origin_bytes": 5916,
+      "public_bytes": 5916,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "gpu_configs/gpu_evidence.schema.json",
+      "public_path": "gpu_configs/gpu_evidence.schema.json",
+      "origin_sha256": "68efd22d5c89f9abe0b8c9688a12942d8a64dfff60d5cf34bad996acdf78b590",
+      "public_sha256": "68efd22d5c89f9abe0b8c9688a12942d8a64dfff60d5cf34bad996acdf78b590",
+      "origin_bytes": 1425,
+      "public_bytes": 1425,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "gpu_configs/gpu_telemetry_event.schema.json",
+      "public_path": "gpu_configs/gpu_telemetry_event.schema.json",
+      "origin_sha256": "e93940b3ea38bf7c6ca49b9b42214b807cb61e5823119a43b68021211737cf0a",
+      "public_sha256": "e93940b3ea38bf7c6ca49b9b42214b807cb61e5823119a43b68021211737cf0a",
+      "origin_bytes": 6678,
+      "public_bytes": 6678,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "gpu_configs/resource_sample.schema.json",
+      "public_path": "gpu_configs/resource_sample.schema.json",
+      "origin_sha256": "149a48216174718a6905f5fb1b65c64839140e9dbc34d7bb695055637719e3e4",
+      "public_sha256": "149a48216174718a6905f5fb1b65c64839140e9dbc34d7bb695055637719e3e4",
+      "origin_bytes": 3074,
+      "public_bytes": 3074,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "requirements-cpu.in",
+      "public_path": "requirements-cpu.in",
+      "origin_sha256": "7e985daebac60b80a220815938b2ed996e8712f6e482e53753bf3c467b28054e",
+      "public_sha256": "7e985daebac60b80a220815938b2ed996e8712f6e482e53753bf3c467b28054e",
+      "origin_bytes": 251,
+      "public_bytes": 251,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "requirements-cpu.lock",
+      "public_path": "requirements-cpu.lock",
+      "origin_sha256": "810d14326e3421db6d14fdb534c7a5ed0c56bbf9b35dd245439b3122a868d9a6",
+      "public_sha256": "810d14326e3421db6d14fdb534c7a5ed0c56bbf9b35dd245439b3122a868d9a6",
+      "origin_bytes": 544,
+      "public_bytes": 544,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "requirements-gpu.in",
+      "public_path": "requirements-gpu.in",
+      "origin_sha256": "b89243e666a406a1417d94e69dc097d3f5d0d9933290b887c3afc6f9a0a62c5b",
+      "public_sha256": "b89243e666a406a1417d94e69dc097d3f5d0d9933290b887c3afc6f9a0a62c5b",
+      "origin_bytes": 328,
+      "public_bytes": 328,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "requirements-gpu.lock",
+      "public_path": "requirements-gpu.lock",
+      "origin_sha256": "7ae79a948761a3dea6e309e331e88eeb1247b6cd101f9aa4f50411ff56138808",
+      "public_sha256": "7ae79a948761a3dea6e309e331e88eeb1247b6cd101f9aa4f50411ff56138808",
+      "origin_bytes": 1055,
+      "public_bytes": 1055,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "src/nmcm/__init__.py",
+      "public_path": "src/nmcm/__init__.py",
+      "origin_sha256": "b869e904b29b8215ad5c7e863b04626cdaeb4280fe731827cdeff0f0a16d4813",
+      "public_sha256": "b869e904b29b8215ad5c7e863b04626cdaeb4280fe731827cdeff0f0a16d4813",
+      "origin_bytes": 337,
+      "public_bytes": 337,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/checkpoint.py",
+      "public_path": "src/nmcm/checkpoint.py",
+      "origin_sha256": "364f3ab735872904f4c6e05f3deaf8ba212624d3450c74fc55227d5c6e633905",
+      "public_sha256": "364f3ab735872904f4c6e05f3deaf8ba212624d3450c74fc55227d5c6e633905",
+      "origin_bytes": 18246,
+      "public_bytes": 18246,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "src/nmcm/compatibility.py",
+      "public_path": "src/nmcm/compatibility.py",
+      "origin_sha256": "038138669426ee2b2342077694e1c71b8b0deb731aeaa9749250c39a0c374ca0",
+      "public_sha256": "038138669426ee2b2342077694e1c71b8b0deb731aeaa9749250c39a0c374ca0",
+      "origin_bytes": 8974,
+      "public_bytes": 8974,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/concurrency.py",
+      "public_path": "src/nmcm/concurrency.py",
+      "origin_sha256": "67072e06c7e7e4bd4620927295321c113c65f3413dbeb45f28f95ee699cfaa76",
+      "public_sha256": "67072e06c7e7e4bd4620927295321c113c65f3413dbeb45f28f95ee699cfaa76",
+      "origin_bytes": 7527,
+      "public_bytes": 7527,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "src/nmcm/contracts.py",
+      "public_path": "src/nmcm/contracts.py",
+      "origin_sha256": "0833e696447397413f3e92e63dadb0106da3bc03d91c14edc6c3fb306c11308a",
+      "public_sha256": "0833e696447397413f3e92e63dadb0106da3bc03d91c14edc6c3fb306c11308a",
+      "origin_bytes": 4935,
+      "public_bytes": 4935,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/foundation.py",
+      "public_path": "src/nmcm/foundation.py",
+      "origin_sha256": "2631266add0c9b67728ac012265fc88e102c7bbf5753285dd2aae3eb4cd6ab63",
+      "public_sha256": "2631266add0c9b67728ac012265fc88e102c7bbf5753285dd2aae3eb4cd6ab63",
+      "origin_bytes": 2769,
+      "public_bytes": 2769,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/graph.py",
+      "public_path": "src/nmcm/graph.py",
+      "origin_sha256": "7b2b7e456b1be955c616a164c549a8889aaad340d58d3aef25749302f6fe9cc9",
+      "public_sha256": "7b2b7e456b1be955c616a164c549a8889aaad340d58d3aef25749302f6fe9cc9",
+      "origin_bytes": 16495,
+      "public_bytes": 16495,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/neural.py",
+      "public_path": "src/nmcm/neural.py",
+      "origin_sha256": "d0a0b82dbe90910ec868fb8c54e41de9069ab892fd76001c6ac8d6ceef813e12",
+      "public_sha256": "d0a0b82dbe90910ec868fb8c54e41de9069ab892fd76001c6ac8d6ceef813e12",
+      "origin_bytes": 5710,
+      "public_bytes": 5710,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/qualification.py",
+      "public_path": "src/nmcm/qualification.py",
+      "origin_sha256": "0f9728a3e0d031fac11d3c0f16cd56ad313a384a850652bc0f5a08d7ea2cf97e",
+      "public_sha256": "0f9728a3e0d031fac11d3c0f16cd56ad313a384a850652bc0f5a08d7ea2cf97e",
+      "origin_bytes": 32734,
+      "public_bytes": 32734,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "src/nmcm/synthetic.py",
+      "public_path": "src/nmcm/synthetic.py",
+      "origin_sha256": "f4725817f30914ab841e2e59243529dbd097baebda944ea44742ece324c43440",
+      "public_sha256": "f4725817f30914ab841e2e59243529dbd097baebda944ea44742ece324c43440",
+      "origin_bytes": 21627,
+      "public_bytes": 21627,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm/telemetry.py",
+      "public_path": "src/nmcm/telemetry.py",
+      "origin_sha256": "49fc428e8bfc1d9407ccd42905b12765671d2b09b13287f9c61ce57c3024fa56",
+      "public_sha256": "49fc428e8bfc1d9407ccd42905b12765671d2b09b13287f9c61ce57c3024fa56",
+      "origin_bytes": 6776,
+      "public_bytes": 6776,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/__init__.py",
+      "public_path": "src/nmcm_gpu/__init__.py",
+      "origin_sha256": "a7f48e23ffcac7e994c034512aaa280c9e14ed5aafb3f4b72cfc41c5cc6ddc0b",
+      "public_sha256": "a7f48e23ffcac7e994c034512aaa280c9e14ed5aafb3f4b72cfc41c5cc6ddc0b",
+      "origin_bytes": 1290,
+      "public_bytes": 1290,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/artifacts.py",
+      "public_path": "src/nmcm_gpu/artifacts.py",
+      "origin_sha256": "472b79f086c59b503cfb81dd380152fa44e49fc647631945d8f6e060698964e6",
+      "public_sha256": "472b79f086c59b503cfb81dd380152fa44e49fc647631945d8f6e060698964e6",
+      "origin_bytes": 6447,
+      "public_bytes": 6447,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/concurrency.py",
+      "public_path": "src/nmcm_gpu/concurrency.py",
+      "origin_sha256": "9565358d08a5075c6e83666b49ad2a92eb3f1cca9efb69b85a91e7781c92a510",
+      "public_sha256": "9565358d08a5075c6e83666b49ad2a92eb3f1cca9efb69b85a91e7781c92a510",
+      "origin_bytes": 18191,
+      "public_bytes": 18191,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/controller.py",
+      "public_path": "src/nmcm_gpu/controller.py",
+      "origin_sha256": "bc55f06d8a6f688288f44c439a77bef77c6a1e010d059d3eea2a6c3d0c9805cd",
+      "public_sha256": "bc55f06d8a6f688288f44c439a77bef77c6a1e010d059d3eea2a6c3d0c9805cd",
+      "origin_bytes": 21259,
+      "public_bytes": 21259,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/environment.py",
+      "public_path": "src/nmcm_gpu/environment.py",
+      "origin_sha256": "c376343653834facc56d417fe409b96f078465f2361ea9e9d9b23f74ba74adf8",
+      "public_sha256": "c376343653834facc56d417fe409b96f078465f2361ea9e9d9b23f74ba74adf8",
+      "origin_bytes": 17065,
+      "public_bytes": 17065,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/monitor.py",
+      "public_path": "src/nmcm_gpu/monitor.py",
+      "origin_sha256": "66a3adae56d1e8fb91a42bba59cd2c3fa87dd0438124def686e87dc44972562c",
+      "public_sha256": "66a3adae56d1e8fb91a42bba59cd2c3fa87dd0438124def686e87dc44972562c",
+      "origin_bytes": 22084,
+      "public_bytes": 22084,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/placement.py",
+      "public_path": "src/nmcm_gpu/placement.py",
+      "origin_sha256": "381b6c36d4acafaef43c4a4102841b42530a4f00f5d5ce6ffb60e5494542c663",
+      "public_sha256": "381b6c36d4acafaef43c4a4102841b42530a4f00f5d5ce6ffb60e5494542c663",
+      "origin_bytes": 15703,
+      "public_bytes": 15703,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/qualification.py",
+      "public_path": "src/nmcm_gpu/qualification.py",
+      "origin_sha256": "473ba142749ccc2bac2721a55cf99ec7fcdd9230f823067087286d03ef435d19",
+      "public_sha256": "473ba142749ccc2bac2721a55cf99ec7fcdd9230f823067087286d03ef435d19",
+      "origin_bytes": 29580,
+      "public_bytes": 29580,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "src/nmcm_gpu/telemetry.py",
+      "public_path": "src/nmcm_gpu/telemetry.py",
+      "origin_sha256": "cec7a300cb10d60581fc278af1a6519c4351ef27e7999418940e90885e4c365a",
+      "public_sha256": "cec7a300cb10d60581fc278af1a6519c4351ef27e7999418940e90885e4c365a",
+      "origin_bytes": 29637,
+      "public_bytes": 29637,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": true
+    },
+    {
+      "origin_path": "tests/conftest.py",
+      "public_path": "tests/conftest.py",
+      "origin_sha256": "8b620fb530ccd94cac3329f80c1223ce1314f488a35a48528677ee8a559fe1fa",
+      "public_sha256": "8b620fb530ccd94cac3329f80c1223ce1314f488a35a48528677ee8a559fe1fa",
+      "origin_bytes": 3113,
+      "public_bytes": 3113,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    },
+    {
+      "origin_path": "tests/test_foundation0_cpu.py",
+      "public_path": "tests/test_foundation0_cpu.py",
+      "origin_sha256": "e554d375e533524c08a31d6463e4c692e484bbe0d48b44365b37dd6ce158d611",
+      "public_sha256": "e554d375e533524c08a31d6463e4c692e484bbe0d48b44365b37dd6ce158d611",
+      "origin_bytes": 39767,
+      "public_bytes": 39767,
+      "transform": "NONE",
+      "already_in_mit_research_snapshot": false
+    }
+  ],
+  "new_documents": [
+    ".github/workflows/basic-cpu.yml",
+    ".gitignore",
+    "ARCHITECTURE.md",
+    "CODEX.md",
+    "CONTRIBUTING.md",
+    "README.md",
+    "ROADMAP.md",
+    "THIRD_PARTY_NOTICES.md",
+    "decisions/0003-owner-direction-collab-memory-and-clean-publication.md",
+    "decisions/README.md",
+    "docs/DEPENDENCIES.md",
+    "docs/FOUNDATION.md",
+    "docs/M1_HISTORY.md",
+    "experiments/README.md",
+    "experiments/foundation-smoke/README.md",
+    "pyproject.toml"
+  ]
+}

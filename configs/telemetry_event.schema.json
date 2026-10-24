@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nmcm/telemetry_event.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "timestamp_utc", "module_instance_id", "module_id",
+    "module_version", "compatibility_version", "lifecycle_state",
+    "current_experiment", "candidate_id", "logical_step", "latency_ms",
+    "wall_time_ms", "cpu_time_ms",
+    "gpu_time_ms", "active_vram_mib", "active_vram_peak_mib",
+    "gpu_utilization_mean_percent", "gpu_utilization_peak_percent", "gpu_measurement_method",
+    "process_peak_memory_bytes", "parameter_bytes",
+    "private_state_bytes", "activation_bytes", "output_bytes",
+    "state_statistics", "activation_statistics", "output_statistics",
+    "checkpoint_schema_version", "state_schema_version", "snapshot_id",
+    "local_status", "transfer_statistics", "current_placement", "sampling_policy",
+    "dropped_samples", "collection_overhead_ms", "gpu_status"
+  ],
+  "properties": {
+    "schema_version": {"const": "nmcm.telemetry/v2"},
+    "timestamp_utc": {"type": "string", "minLength": 1},
+    "module_instance_id": {"type": "string", "minLength": 1},
+    "module_id": {"type": "string"},
+    "module_version": {"type": "string"},
+    "compatibility_version": {"type": "string"},
+    "lifecycle_state": {"type": "string"},
+    "current_experiment": {"type": "string"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "logical_step": {"type": "integer", "minimum": 0},
+    "latency_ms": {"type": "number", "minimum": 0},
+    "wall_time_ms": {"type": "number", "minimum": 0},
+    "cpu_time_ms": {"type": "number", "minimum": 0},
+    "gpu_time_ms": {"type": "null"},
+    "active_vram_mib": {"type": "null"},
+    "active_vram_peak_mib": {"type": "null"},
+    "gpu_utilization_mean_percent": {"type": "null"},
+    "gpu_utilization_peak_percent": {"type": "null"},
+    "gpu_measurement_method": {"const": "NOT_RUN_CPU_ONLY"},
+    "process_peak_memory_bytes": {"type": "integer", "minimum": 0},
+    "parameter_bytes": {"type": "integer", "minimum": 1},
+    "private_state_bytes": {"type": "integer", "minimum": 0},
+    "activation_bytes": {"type": "integer", "minimum": 0},
+    "output_bytes": {"type": "integer", "minimum": 0},
+    "state_statistics": {"$ref": "#/$defs/statistics_map"},
+    "activation_statistics": {"$ref": "#/$defs/statistics_map"},
+    "output_statistics": {"$ref": "#/$defs/statistics_map"},
+    "checkpoint_schema_version": {"type": "string"},
+    "state_schema_version": {"type": "string"},
+    "snapshot_id": {"type": "string"},
+    "local_status": {"enum": ["PASS", "FAIL", "NOT_RUN"]},
+    "transfer_statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "bytes", "latency_ms", "status"],
+      "properties": {
+        "count": {"type": "integer", "minimum": 0},
+        "bytes": {"type": "integer", "minimum": 0},
+        "latency_ms": {"type": "number", "minimum": 0},
+        "status": {"const": "NOT_RUN"}
+      }
+    },
+    "current_placement": {"const": "cpu"},
+    "sampling_policy": {"type": "string", "minLength": 1},
+    "dropped_samples": {"type": "integer", "minimum": 0},
+    "collection_overhead_ms": {"type": "number", "minimum": 0},
+    "gpu_status": {"const": "NOT_RUN"}
+  },
+  "$defs": {
+    "statistics_map": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"$ref": "#/$defs/tensor_statistics"}
+    },
+    "tensor_statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "finite_count", "density", "mean", "std", "norm", "minimum", "maximum"],
+      "properties": {
+        "count": {"type": "integer", "minimum": 1},
+        "finite_count": {"type": "integer", "minimum": 0},
+        "density": {"type": "number", "minimum": 0, "maximum": 1},
+        "mean": {"type": "number"},
+        "std": {"type": "number", "minimum": 0},
+        "norm": {"type": "number", "minimum": 0},
+        "minimum": {"type": "number"},
+        "maximum": {"type": "number"}
+      }
+    }
+  }
+}

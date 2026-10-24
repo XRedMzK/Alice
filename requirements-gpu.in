@@ -1,0 +1,11 @@
+--index-url https://pypi.org/simple
+--extra-index-url https://download.pytorch.org/whl/cu130
+
+# Separate NMCM_V2_FOUNDATION_GPU_0 profile. The CPU environment is not
+# mutated; this profile is installed into .venv-gpu.
+torch==2.13.0+cu130
+numpy==2.5.2
+safetensors==0.8.0
+jsonschema==4.26.0
+pytest==9.1.1
+nvidia-ml-py==13.610.43

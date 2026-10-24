@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nmcm/whole_checkpoint.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "graph_id", "graph_version", "snapshot_id", "logical_step", "modules"],
+  "properties": {
+    "schema_version": {"const": "nmcm.whole_checkpoint/v2"},
+    "graph_id": {"type": "string", "minLength": 1},
+    "graph_version": {"type": "string", "minLength": 1},
+    "snapshot_id": {"type": "string", "pattern": "^[a-z0-9_.-]+$"},
+    "logical_step": {"type": "integer", "minimum": 0},
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "instance_id", "module_id", "module_version", "compatibility_version",
+          "state_schema_version", "metadata_file", "metadata_sha256",
+          "tensor_file", "tensor_sha256", "tensor_bytes"
+        ],
+        "properties": {
+          "instance_id": {"type": "string", "pattern": "^[a-z0-9_.-]+$"},
+          "module_id": {"type": "string", "minLength": 1},
+          "module_version": {"type": "string", "minLength": 1},
+          "compatibility_version": {"type": "string", "minLength": 1},
+          "state_schema_version": {"type": "string", "minLength": 1},
+          "metadata_file": {"type": "string", "pattern": "^[a-z0-9_.-]+[.]json$"},
+          "metadata_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "tensor_file": {"type": "string", "pattern": "^[a-z0-9_.-]+[.]safetensors$"},
+          "tensor_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "tensor_bytes": {"type": "integer", "minimum": 1}
+        }
+      }
+    }
+  }
+}

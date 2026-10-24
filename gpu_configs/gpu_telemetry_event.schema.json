@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/nmcm/gpu_telemetry_event.schema.json",
+  "title": "NMCM FOUNDATION_GPU_0 telemetry event",
+  "oneOf": [
+    {"$ref": "#/$defs/module_event"},
+    {"$ref": "#/$defs/transfer_event"}
+  ],
+  "$defs": {
+    "status": {
+      "enum": ["PASS", "FAIL", "NOT_RUN"]
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "index",
+        "name",
+        "compute_capability",
+        "total_memory_bytes",
+        "uuid",
+        "torch_cuda_build"
+      ],
+      "properties": {
+        "type": {"const": "cuda"},
+        "index": {"type": "integer", "minimum": 0},
+        "name": {"type": "string", "minLength": 1},
+        "compute_capability": {
+          "type": "array",
+          "prefixItems": [
+            {"type": "integer", "minimum": 1},
+            {"type": "integer", "minimum": 0}
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "total_memory_bytes": {"type": "integer", "minimum": 1},
+        "uuid": {"type": ["string", "null"]},
+        "torch_cuda_build": {"type": ["string", "null"]}
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allocated_before_bytes",
+        "allocated_after_bytes",
+        "allocated_peak_bytes",
+        "reserved_before_bytes",
+        "reserved_after_bytes",
+        "reserved_peak_bytes",
+        "peak_scope"
+      ],
+      "properties": {
+        "allocated_before_bytes": {"type": "integer", "minimum": 0},
+        "allocated_after_bytes": {"type": "integer", "minimum": 0},
+        "allocated_peak_bytes": {"type": "integer", "minimum": 0},
+        "reserved_before_bytes": {"type": "integer", "minimum": 0},
+        "reserved_after_bytes": {"type": "integer", "minimum": 0},
+        "reserved_peak_bytes": {"type": "integer", "minimum": 0},
+        "peak_scope": {
+          "enum": [
+            "execution_interval_process_allocator",
+            "process_allocator_since_last_external_reset"
+          ]
+        }
+      }
+    },
+    "transfer_statistics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "count",
+        "bytes",
+        "wall_time_ms",
+        "cuda_time_ms",
+        "transfer_ids"
+      ],
+      "properties": {
+        "count": {"type": "integer", "minimum": 0},
+        "bytes": {"type": "integer", "minimum": 0},
+        "wall_time_ms": {"type": "number", "minimum": 0},
+        "cuda_time_ms": {"type": "number", "minimum": 0},
+        "transfer_ids": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1},
+          "uniqueItems": true
+        }
+      }
+    },
+    "common_event": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_kind",
+        "event_id",
+        "timestamp_utc",
+        "experiment_id",
+        "snapshot_id",
+        "candidate_id",
+        "logical_step",
+        "status",
+        "sampling_policy",
+        "dropped_samples",
+        "collection_overhead_ms",
+        "device",
+        "module_instance_id",
+        "module_id",
+        "module_version",
+        "wall_time_ms",
+        "cuda_time_ms",
+        "memory"
+      ],
+      "properties": {
+        "schema_version": {"const": "nmcm.gpu_telemetry/v1"},
+        "event_kind": {"type": "string"},
+        "event_id": {"type": "string", "minLength": 1},
+        "timestamp_utc": {"type": "string", "format": "date-time"},
+        "experiment_id": {"type": "string", "minLength": 1},
+        "snapshot_id": {"type": "string", "minLength": 1},
+        "candidate_id": {"type": "string", "minLength": 1},
+        "logical_step": {"type": "integer", "minimum": 0},
+        "status": {"$ref": "#/$defs/status"},
+        "sampling_policy": {"type": "string", "minLength": 1},
+        "dropped_samples": {"type": "integer", "minimum": 0},
+        "collection_overhead_ms": {"type": "number", "minimum": 0},
+        "device": {"$ref": "#/$defs/device"},
+        "module_instance_id": {"type": "string", "minLength": 1},
+        "module_id": {"type": "string", "minLength": 1},
+        "module_version": {"type": "string", "minLength": 1},
+        "wall_time_ms": {"type": "number", "minimum": 0},
+        "cuda_time_ms": {"type": "number", "minimum": 0},
+        "memory": {"$ref": "#/$defs/memory"}
+      }
+    },
+    "module_fields": {
+      "type": "object",
+      "required": [
+        "compatibility_version",
+        "state_schema_version",
+        "lifecycle_state",
+        "current_placement",
+        "parameter_bytes",
+        "buffer_bytes",
+        "owned_tensor_bytes",
+        "private_state_bytes",
+        "activation_bytes",
+        "output_bytes",
+        "transfer_statistics"
+      ],
+      "properties": {
+        "event_kind": {"const": "module_execution"},
+        "compatibility_version": {"type": "string", "minLength": 1},
+        "state_schema_version": {"type": "string", "minLength": 1},
+        "lifecycle_state": {"const": "active"},
+        "current_placement": {
+          "anyOf": [
+            {"type": "string", "pattern": "^cuda:[0-9]+$"},
+            {"const": "mixed"}
+          ]
+        },
+        "parameter_bytes": {"type": "integer", "minimum": 0},
+        "buffer_bytes": {"type": "integer", "minimum": 0},
+        "owned_tensor_bytes": {"type": "integer", "minimum": 0},
+        "private_state_bytes": {"type": "integer", "minimum": 0},
+        "activation_bytes": {"type": "integer", "minimum": 0},
+        "output_bytes": {"type": "integer", "minimum": 0},
+        "transfer_statistics": {"$ref": "#/$defs/transfer_statistics"}
+      }
+    },
+    "transfer_fields": {
+      "type": "object",
+      "required": [
+        "transfer_id",
+        "direction",
+        "source_placement",
+        "target_placement",
+        "bytes"
+      ],
+      "properties": {
+        "event_kind": {"const": "placement_transfer"},
+        "transfer_id": {"type": "string", "minLength": 1},
+        "direction": {"enum": ["cpu_to_gpu", "gpu_to_cpu"]},
+        "source_placement": {"enum": ["cpu", "gpu"]},
+        "target_placement": {"enum": ["cpu", "gpu"]},
+        "bytes": {"type": "integer", "minimum": 0}
+      }
+    },
+    "module_event": {
+      "allOf": [
+        {"$ref": "#/$defs/common_event"},
+        {"$ref": "#/$defs/module_fields"}
+      ],
+      "unevaluatedProperties": false
+    },
+    "transfer_event": {
+      "allOf": [
+        {"$ref": "#/$defs/common_event"},
+        {"$ref": "#/$defs/transfer_fields"}
+      ],
+      "unevaluatedProperties": false
+    }
+  }
+}
