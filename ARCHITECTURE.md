@@ -67,7 +67,7 @@ router's label. No separate network is required for each historical function.
 | Foundation CPU | `src/nmcm`: contracts, registry/graph, owned recurrent state, shards/whole checkpoints, behavioral compatibility, telemetry | Historical synthetic CPU-01…15 passed; current basic check covers schemas and routing only. |
 | Foundation GPU control plane | `src/nmcm_gpu`: admission, monitoring, placement, independent coordination and qualification support | Historical target-GPU G-01…15 passed. Host-bound profile and original run/checkpoint inputs are excluded from this clean source release. No GPU requalification or portable GPU execution is claimed. |
 | Synthetic A1/A2/A3/B/C | Small test neural modules and original test protocol | Demonstrate bounded module replaceability and controls; are not a language model, Memory Bridge or memory of lived experience. |
-| Frozen Qwen language/response integration | Planned | External donor identified; no weights or Alice Qwen runtime shipped. |
+| Frozen Qwen technical runtime | `src/alice_runtime`: local text generation, participants/source IDs, sessions and typed input-embedding connection | Short real Qwen smoke passed; parameters stay frozen. No model assets shipped, broad dialog-quality qualification or acquired-memory claim. |
 | Plastic neural memory / Memory Bridge | Planned; exact mechanisms open | No implementation, training or cognitive qualification. |
 | ComfyUI and future clients | Selected integration direction; implementation planned | No custom nodes, client adapters or lifecycle persistence integration. |
 
@@ -94,12 +94,13 @@ Any future contract change needs explicit versioning and affected evidence.
 
 ## Open engineering choices and next review
 
-No memory rule, plasticity mechanism, capacity, consolidation scheme, Bridge
-topology, Qwen intervention site, memory tensor schema, training objective or
-new module decomposition is selected by this publication. Foundation's synthetic
+No memory rule, plasticity mechanism, capacity, consolidation scheme, trained
+Bridge topology, memory tensor schema or training objective is selected. Stage 1
+checks input embeddings as one technical intervention site, not a final learned
+interface. Foundation's synthetic
 state/checkpoint utilities are reusable engineering infrastructure; they are not
 proof that the planned neural memory already works. [ROADMAP.md](ROADMAP.md)
-proposes a frozen-Qwen dialog baseline first, then one persistent memory
-capability with a trainable Bridge. The owner must approve that sequence before
-implementation. No model loading, downloads, training or new memory work is
-performed by this policy PR.
+was approved by the owner at PR #1 commit `9c29e08`. Its first technical stage
+now loads/generates with local frozen Qwen; the next main cognitive milestone is
+independent plastic Neural Memory plus a trainable Bridge. No training or memory
+implementation is part of Stage 1. See [runtime scope](docs/TECHNICAL_RUNTIME.md).

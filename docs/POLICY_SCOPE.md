@@ -2,14 +2,15 @@
 
 Effective decision: 25 October 2026,
 [Engineering First Policy v2](ENGINEERING_FIRST_POLICY_V2_RU.md).
-The policy is approved by the owner; the replacement roadmap is a proposal for
-owner review. This documentation change implements no cognitive mechanism.
+The owner approved the policy and roadmap at PR #1 commit `9c29e08`, merged as
+`641d40e`, and authorized Stage 1 technical runtime. Neural Memory and a trained
+Bridge remain unimplemented; see [the runtime scope](TECHNICAL_RUNTIME.md).
 
 | Document | Scope after this decision |
 | --- | --- |
 | [CODEX.md](../CODEX.md) | Active agent working policy for new Alice work. |
 | [ARCHITECTURE.md](../ARCHITECTURE.md) | Approved principles and actual implementation boundaries. |
-| [ROADMAP.md](../ROADMAP.md) | Proposed functional priorities and next observable result; pending owner approval. |
+| [ROADMAP.md](../ROADMAP.md) | Approved functional priorities; Stage 1 technical result and next cognitive milestone are explicitly separated. |
 | [ENGINEERING_MODULE_CONTRACT.md](../ENGINEERING_MODULE_CONTRACT.md) | Active requirements for new functions, reuse and integration. |
 | [ENGINEERING_VALIDATION.md](../ENGINEERING_VALIDATION.md) | Active practical behavior, regression, state and resource checks. |
 | [MODULE_CONTRACT.md](../MODULE_CONTRACT.md) | Unchanged frozen Foundation v1alpha1 contract. Applies to Foundation conformance, not a requirement to build a neural network for each future function. |

@@ -1,10 +1,11 @@
 # Alice functional roadmap — proposal
 
-25 October 2026. **REVISED PROPOSAL — awaiting final owner approval.**
+25 October 2026. **OWNER-APPROVED at PR #1 commit `9c29e08`.**
 [Engineering First Policy v2](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) and the overall
-functional architecture are owner-approved. The clarified roadmap below is
-returned for final approval before implementation or merge.
-This PR performs no training, model download, runtime or memory implementation.
+functional architecture are owner-approved. PR #1 was merged as `641d40e`.
+Stage 1 technical runtime is authorized and implemented locally; see
+[the runtime guide](docs/TECHNICAL_RUNTIME.md). This stage performs no training,
+new model downloads or Neural Memory/learned Bridge implementation.
 
 Progress answers: **What useful task can Alice now perform that it could not
 perform before?** Cognitive additions need relevant real-runtime MODULE OFF /
@@ -14,9 +15,10 @@ MODULE ON evidence and acceptable regressions, not merely changed output.
 
 Foundation CPU and target-GPU acceptance remain historical PASS in their original
 scope. Preserve source, interfaces, schemas, tests and evidence. The public tree
-contains Foundation, not a Qwen dialog runtime, plastic neural memory, Memory
-Bridge or ComfyUI integration. No new milestone below is complete. Synthetic
-recurrent state is not acquired episodic memory.
+now contains Foundation and the Stage 1 local frozen-Qwen technical runtime.
+Plastic neural memory, a trained Memory Bridge and ComfyUI are not implemented.
+Stage 1 technical checks pass; no cognitive memory milestone below is complete.
+Synthetic recurrent state and session transcripts are not acquired episodic memory.
 
 M1 is RESEARCH ARCHIVED / NOT_FROZEN in its
 [separate project](https://github.com/XRedMzK/M1-Event-Understanding). Its
@@ -159,7 +161,8 @@ Retain working checkpoints, code/configs, compact relevant results and artifacts
 needed to recover important results. Estimate disk cost and cleanup scope before
 computation. Follow [ENGINEERING_VALIDATION.md](ENGINEERING_VALIDATION.md).
 
-**Current stop point:** return this clarified roadmap in the existing PR #1 for
-final owner approval. The policy and overall architecture are approved; the
-revised implementation plan awaits that final decision. Do not create a second
-PR, merge into main, start implementation or run training in this work package.
+**Current stop point:** Stage 1 delivers the technical runtime and short results;
+present [Collab memory/Bridge options](docs/NEURAL_MEMORY_BRIDGE_OPTIONS.md) for
+the first main cognitive milestone. PR #1 is already merged with owner approval.
+Do not infer permission for training, new large-model downloads or implementing
+the unselected Neural Memory/learned Bridge from Stage 1 authorization.

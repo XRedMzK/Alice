@@ -1,8 +1,9 @@
 # Alice working policy — Engineering First v2
 
 Authority: owner decision of 25 October 2026. This is the active policy for new
-Alice development. The functional roadmap in [ROADMAP.md](ROADMAP.md) is a
-proposal awaiting owner approval; the policy itself records the owner's decision.
+Alice development. The owner approved the roadmap at PR #1 commit `9c29e08`;
+it was merged as `641d40e`. Stage 1 technical runtime is authorized. Memory/Bridge
+algorithms and training remain separate future decisions.
 
 **ENGINEERING FIRST. REAL BEHAVIOR FIRST. MINIMAL NECESSARY COMPLEXITY.**
 
@@ -93,10 +94,11 @@ deletion of historical M1/Foundation evidence or unknown user data.
 
 ## Current work boundary and reporting
 
-This work package updates documentation and prepares a separate PR for owner
-review. Do not begin runtime or new memory implementation, training, large model
-downloads, or architecture runs while the roadmap awaits approval. The roadmap
-does not implicitly start those activities.
+The current work package implements Stage 1: local frozen-Qwen generation,
+participant/source IDs, sessions, errors and a typed optional Bridge connection.
+No training, new large-model downloads, Neural Memory implementation or trained
+Memory Bridge is authorized here. Report the short technical result and Collab
+options for the next cognitive milestone; do not optimize dialog metrics.
 
 Preserve upstream licenses/provenance. Do not publish credentials, private
 conversations, model assets, caches or historical runs. Report what changed,

@@ -1,8 +1,9 @@
 # Engineering contract for new Alice functions
 
 Status: active rules under the owner's Engineering First v2 decision,
-25 October 2026. Mechanism choices and the proposed implementation sequence in
-[ROADMAP.md](ROADMAP.md) still await approval.
+25 October 2026. The owner approved [ROADMAP.md](ROADMAP.md) at `9c29e08` and
+authorized Stage 1. Memory/Bridge algorithm selection and training remain future
+scoped decisions; Stage 1 supplies a technical connection, not learned memory.
 
 This contract governs new functions. The unchanged
 [MODULE_CONTRACT.md](MODULE_CONTRACT.md) remains the accepted Foundation
