@@ -13,9 +13,27 @@ class BridgeError(ValueError):
 
 
 @dataclass(frozen=True)
+class MessageSpan:
+    """Half-open token interval for one complete rendered source message."""
+
+    source_id: str
+    start_token: int
+    end_token: int
+
+    def __post_init__(self) -> None:
+        if (not isinstance(self.source_id, str) or not self.source_id
+                or type(self.start_token) is not int or type(self.end_token) is not int
+                or not 0 <= self.start_token < self.end_token):
+            raise BridgeError("Message span requires a source and a nonempty token interval")
+
+
+@dataclass(frozen=True)
 class BridgeContext:
     session_id: str
     source_ids: tuple[str, ...]
+    current_source_id: str | None = None
+    knowledge_source_id: str | None = None
+    message_spans: tuple[MessageSpan, ...] = ()
 
 
 class EmbeddingBridgePort:
@@ -31,6 +49,11 @@ class EmbeddingBridgePort:
         self._enabled = False
         self._lock = threading.RLock()
         self.calls = 0
+
+    @property
+    def attached(self) -> bool:
+        with self._lock:
+            return self._bridge is not None
 
     def attach(self, bridge: Callable) -> None:
         if not callable(bridge):
