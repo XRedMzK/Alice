@@ -5,7 +5,10 @@ AliceRuntime and the compatible sealed full-rank payload Bridge/M. Explicit
 `remember` changes only independently persisted M. The question-only memory
 profile, source IDs, integrity checks and OFF/EMPTY/ON coexist with the unchanged
 no-memory Stage 1 context profile. [Interfaces and boundaries](docs/NEURAL_MEMORY_RUNTIME.md).
-The original planned-memory wording below is historical architectural direction;
+The dialogue adapter adds only deterministic explicit object-label intent parsing,
+one transient speaker/session-bound confirmation proposal and a bounded RU query
+adapter. It neither changes the neural architecture nor stores fact text as
+long-term state. The original planned-memory wording below is historical architectural direction;
 it does not override this bounded implementation or prove broader abilities.
 
 Status: owner-approved Engineering First v2 principles, 25 October 2026. Implemented Foundation and

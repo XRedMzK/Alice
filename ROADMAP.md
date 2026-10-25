@@ -4,7 +4,9 @@ Prepared local continuation: structured acquisition and restart recall from
 independent parameter memory are integrated in ordinary AliceRuntime/CLI.
 No new model, large training run, lexicon extension or new architecture is part
 of this publication package. Scope remains one-token facts, explicit sources and
-three English question forms. [Usage](docs/NEURAL_MEMORY_RUNTIME.md). Earlier
+three English question forms. A bounded RU/EN message adapter now proposes one
+object label for confirmation by its actual source; only confirmed facts enter M.
+It adds neither training nor a new memory architecture. [Usage](docs/NEURAL_MEMORY_RUNTIME.md). Earlier
 unimplemented-memory statements below describe the original roadmap snapshot.
 
 25 October 2026. **OWNER-APPROVED at PR #1 commit `9c29e08`.**

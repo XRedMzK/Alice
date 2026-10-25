@@ -4,7 +4,7 @@ Alice is an engineering project for a functioning modular cognitive system,
 informed by research and existing technical solutions. Its direction is an independently owned, changeable
 cognitive state and acquired experience that can survive replacement of a language
 backbone. **This branch adds bounded persistent parametric Neural Memory to
-the Stage 1 runtime.** Explicit structured facts survive process restart through
+the Stage 1 runtime.** Explicit supported facts survive process restart through
 an independently saved neural state. [Run and limits](docs/NEURAL_MEMORY_RUNTIME.md).
 
 > Use science to design the architecture; use engineering evidence to determine
@@ -48,8 +48,11 @@ Session transcripts and explicit participant IDs are support state, not Neural
 Memory. For the integrated structured-memory profile, use
 [Neural Memory runtime](docs/NEURAL_MEMORY_RUNTIME.md). It requires a separately
 obtained compatible Bridge checkpoint. Ordinary messages are not automatically
-learned, and the bounded memory profile uses the current full question rather
-than dialogue history. The no-memory Stage 1 profile retains its context behavior.
+learned. The dialogue adapter accepts a small RU/EN object-label grammar with
+explicit remember/correct intent and speaker-bound confirmation; it is not
+free-form language understanding. The bounded memory profile uses the current
+full question rather than dialogue history. The no-memory Stage 1 profile
+retains its context behavior.
 
 ## Basic local check
 

@@ -62,6 +62,12 @@ class RuntimeSpy:
     def close(self):
         self.closed = True
 
+    def clear_pending_memory(self, session=None):
+        pass
+
+    def clear_session(self, session):
+        self.store.clear_session(session)
+
 
 @pytest.fixture
 def harness(monkeypatch):

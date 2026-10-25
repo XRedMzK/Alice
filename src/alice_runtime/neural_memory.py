@@ -153,6 +153,31 @@ class NeuralMemorySession:
                     "bridge_digest": bridge_digest, "bridge_unchanged": True,
                     "qwen_frozen": True, "state_path": str(self.state_path)}
 
+    def validate_fact(self, source_id: str, cue: str, value: str) -> None:
+        """Read-only admission before asking for consent; no experience write.
+
+        Use the actual frozen tokenizer/embedding boundary, not a word palette.
+        Only temporary tensors are created; no cue/value record is retained.
+        """
+        from alice_memory.query_normalization import normalize_memory_query
+
+        with self._lock, torch.no_grad():
+            self._assert_open()
+            self.bridge.assert_frozen()
+            self.engine.assert_qwen_frozen()
+            before = self.memory.content_digest()
+            self.memory.source_index(source_id)
+            self.engine._question_ids(normalize_memory_query(cue))
+            prefix = self.engine._question_ids(cue)
+            tail = self.engine._ids(f"\nQuestion: {cue}\nAnswer:")
+            if prefix.shape[1] + 1 + tail.shape[1] + 1 > self.engine.max_tokens:
+                raise MemoryStateError("Fact question exceeds the memory profile token budget")
+            self.bridge.value(self.engine._value_feature(value))
+            self.bridge.assert_frozen()
+            self.engine.assert_qwen_frozen()
+            if self.memory.content_digest() != before:
+                raise MemoryStateError("Fact validation unexpectedly changed memory")
+
     def respond(self, request: Question, mode: str = "on", max_new_tokens: int = 8) -> dict:
         with self._lock:
             self._assert_open()
