@@ -1,9 +1,9 @@
 # Alice
 
-Alice is a research project for a modular neural cognitive system informed by
-research on the human brain. Its direction is an independently owned, changeable
+Alice is an engineering project for a functioning modular cognitive system,
+informed by research and existing technical solutions. Its direction is an independently owned, changeable
 cognitive state and acquired experience that can survive replacement of a language
-backbone. **This is a research direction, not a completed cognitive system.**
+backbone. **The cognitive runtime and its new abilities remain planned.**
 
 > Use science to design the architecture; use engineering evidence to determine
 > whether Alice works.
@@ -22,7 +22,16 @@ language processing and response formation, a **planned independent plastic
 neural memory**, and a **planned replaceable trainable Memory Bridge**. ComfyUI
 is the chosen future external visual graph/UI/API layer. These integrations are
 **not implemented in this repository**. See [ARCHITECTURE.md](ARCHITECTURE.md) for
-the precise boundaries and [ROADMAP.md](ROADMAP.md) for open work.
+the precise boundaries and [ROADMAP.md](ROADMAP.md) for proposed functional work.
+
+[Engineering First Policy v2](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) is active:
+new cognitive functions must improve useful runtime behavior in matched MODULE
+OFF / MODULE ON checks. There is no mandatory M1-style scientific qualification
+or separate network for each historical M0–M13 function. The replacement roadmap
+awaits owner approval; this PR starts no training, downloads or implementation.
+Start with [CODEX.md](CODEX.md), the [engineering contract](ENGINEERING_MODULE_CONTRACT.md)
+and [validation rules](ENGINEERING_VALIDATION.md). [Policy scope](docs/POLICY_SCOPE.md)
+separates active rules from the unchanged Foundation research records.
 
 ## Basic local check
 

@@ -1,6 +1,8 @@
 # Contributing
 
-Start with the [architecture status](ARCHITECTURE.md) and
+Start with the active [working policy](CODEX.md),
+[engineering contract](ENGINEERING_MODULE_CONTRACT.md),
+[validation rules](ENGINEERING_VALIDATION.md), [architecture status](ARCHITECTURE.md) and
 [Foundation scope](docs/FOUNDATION.md). Describe the concrete behavior your change
 provides, why it is needed, affected interfaces, validation and limitations.
 
@@ -9,7 +11,15 @@ They perform no training. Larger qualification or training work needs its own
 bounded task and resource/evidence plan. Keep historical results immutable and
 label new results with their actual scope. Reuse existing evidence when relevant
 dependencies have not changed; do not turn every ordinary correction into a new
-scientific qualification.
+scientific qualification. New cognitive functions also need matched MODULE OFF /
+MODULE ON checks on useful real behavior; changed output alone is insufficient.
+Reuse existing solutions before introducing another model.
+
+The [owner's policy](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) is approved; the
+replacement [roadmap](ROADMAP.md) is proposed. Await the owner's roadmap approval
+before starting the proposed runtime, memory, Bridge or ComfyUI implementation.
+The unchanged [Foundation contracts](docs/POLICY_SCOPE.md) are historical scoped
+records, not mandatory qualification programmes for all new functions.
 
 Do not silently change frozen Foundation schemas, thresholds or accepted evidence.
 Version intentional contract changes and explain consumer/state migration risks.
