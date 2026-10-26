@@ -11,6 +11,22 @@ references remain separate from publication branches.
 | 2 | Neural Memory runtime integration | Exact Stage 1 head `626b6f81cabc732cea1b193e964548fc4a61d9dc` | Accepted independent full-rank M/Bridge path, persistent runtime ownership, source isolation, integrity/recovery, portable source packaging and asset-free tests. |
 | 3 | Dialogue Acquisition and public reproduction | Exact reviewed head of memory integration | Bounded explicit RU/EN object-label intents, session/source/content-bound confirmation, answer-blind RU query adaptation, install guide and opt-in real-model reproduction. |
 
+Prepared review branches:
+
+- Stage 1 keeps the existing PR #2 branch
+  `work/qwen-runtime-stage1-20261025` at
+  `626b6f81cabc732cea1b193e964548fc4a61d9dc`, against `main`
+  `641d40e6ac6cc7bbbe95df98bf5414aa63c6e6ff`.
+- Memory uses `review/public-memory-v0-20261026` at
+  `21cb07e9b34b5261aa062378a34b1e69dcd43e5e`, based on that exact Stage 1 head.
+- Dialogue uses `review/public-dialogue-v0-20261026`, based on the exact Memory
+  head above. Its merge of `b499b19ad028c74f1ae613d26986e96609444225` preserves
+  the previously accepted source history. The review handoff pins its final
+  commit; a moving branch name is not a reproducibility identity.
+
+The two continuation branches are prepared locally for owner review; naming
+these branches does not claim they have been pushed or opened as remote PRs.
+
 The memory layer is prepared from the existing source-only memory publication
 commit `ee62eb6`; the final dialogue source baseline is `b499b19`. The combined
 public stabilization preserves that baseline and adds narrowly scoped publication
