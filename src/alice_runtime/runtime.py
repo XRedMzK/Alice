@@ -14,6 +14,7 @@ from .bridge import BridgeContext, EmbeddingBridgePort, MessageSpan
 from .loading import LoadedQwen
 from .sessions import Message, SessionStore
 from .fact_intent import confirm_intent, normalize_fact_question, parse_memory_intent
+from .generation import SingleTurnStoppingCriteria, cut_turn
 
 
 class RuntimeInputError(ValueError):
@@ -31,6 +32,8 @@ class GenerationResult:
     bridge_calls: int
     context_messages_dropped: int
     memory_info: dict | None = None
+    finish_reason: str | None = None
+    stop_sequence: str | None = None
 
 
 @dataclass(frozen=True)
@@ -403,16 +406,22 @@ class AliceRuntime:
                         max_new_tokens=max_new_tokens, do_sample=False, use_cache=False,
                         eos_token_id=self.model.config.eos_token_id,
                         pad_token_id=pad,
+                        stopping_criteria=[SingleTurnStoppingCriteria(self.tokenizer, inputs.shape[1])],
                     )
                 if inputs.device.type == "cuda":
                     torch.cuda.synchronize(inputs.device)
                 generated = output[0, inputs.shape[1]:].tolist()
-                response = self.tokenizer.decode(generated, skip_special_tokens=True).strip()
+                suffix = self.tokenizer.decode(generated, skip_special_tokens=True)
+                boundary = cut_turn(suffix, allow_partial=len(generated) >= max_new_tokens)
+                response = boundary.text.strip()
                 self.assert_frozen()
                 self.store.append_result(session_id, incoming, response)
                 return GenerationResult(
                     response, session_id, context.source_ids, inputs.shape[1], len(generated),
                     time.perf_counter() - started, self.bridge.calls - calls, dropped,
+                    finish_reason=boundary.finish_reason or (
+                        "token_limit" if len(generated) >= max_new_tokens else "eos"),
+                    stop_sequence=boundary.stop_sequence,
                 )
             except torch.cuda.OutOfMemoryError as exc:
                 raise RuntimeError("Insufficient VRAM; reduce explicit context/output budget") from exc
