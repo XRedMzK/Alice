@@ -5,6 +5,7 @@ import json
 import pytest
 
 from alice_runtime.sessions import Message, SessionError, SessionStore
+from alice_runtime.export import TranscriptExportDirectory
 
 
 def test_participant_identity_and_transcript_survive_restore(tmp_path):
@@ -17,7 +18,8 @@ def test_participant_identity_and_transcript_survive_restore(tmp_path):
     store.add_message(session, "user", "Ключ на столе.")
     store.add_message(session, person.source_id, "The key is in the drawer.")
     path = tmp_path / "state.json"
-    store.save(path)
+    with TranscriptExportDirectory(tmp_path) as exporter:
+        store.save(path.name, exporter=exporter)
     restored = SessionStore.load(path)
     assert restored.participants == store.participants
     assert restored.messages(session) == store.messages(session)
@@ -39,7 +41,8 @@ def test_sessions_are_isolated_clearable_and_closed_state_persists(tmp_path):
     assert view == (Message("user", "Private to this session"),)
     store.close_session(first)
     path = tmp_path / "state.json"
-    store.save(path)
+    with TranscriptExportDirectory(tmp_path) as exporter:
+        store.save(path.name, exporter=exporter)
     restored = SessionStore.load(path)
     for operation in (lambda: restored.messages(first),
                       lambda: restored.add_message(first, "user", "No"),
@@ -86,17 +89,22 @@ def test_exchange_commit_is_atomic_and_allows_immediate_eos():
     assert store.messages(session) == after_first + (next_message,)
 
 
-def test_corrupt_snapshot_is_rejected_and_atomic_save_preserves_old_file(tmp_path, monkeypatch):
+def test_corrupt_snapshot_is_rejected_and_create_only_export_preserves_old_file(tmp_path, monkeypatch):
     store = SessionStore()
     session = store.new_session()
     store.add_message(session, "user", "Original")
     path = tmp_path / "state.json"
-    store.save(path)
-    original = path.read_bytes()
-    import alice_runtime.sessions as module
-    monkeypatch.setattr(module.os, "replace", lambda *_: (_ for _ in ()).throw(OSError("disk error")))
-    with pytest.raises(SessionError, match="disk error"):
-        store.save(path)
+    with TranscriptExportDirectory(tmp_path) as exporter:
+        store.save(path.name, exporter=exporter)
+        original = path.read_bytes()
+        with pytest.raises(SessionError, match="already exists"):
+            store.save(path.name, exporter=exporter)
+        import alice_runtime.export as module
+        with monkeypatch.context() as patch:
+            patch.setattr(module.os, "fsync", lambda *_: (_ for _ in ()).throw(OSError("disk error")))
+            with pytest.raises(SessionError, match="disk error"):
+                store.save("new.json", exporter=exporter)
+        assert not (tmp_path / "new.json").exists()
     assert path.read_bytes() == original
     assert list(tmp_path.glob("*.tmp")) == []
     payload = json.loads(original)

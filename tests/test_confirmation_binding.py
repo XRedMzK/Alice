@@ -210,14 +210,17 @@ def test_unadmitted_replacement_does_not_leave_a_confirmable_old_fact(
 
 
 def test_restoring_same_session_and_source_does_not_restore_confirmation(runtime):
+    from alice_runtime.export import TranscriptExportDirectory
     create, root = runtime
     app = create()
     session = app.store.new_session("same-session-id")
     confirmation_id = ask(app, session, proposal("a-0", "window")).memory_info["confirmation_id"]
-    app.store.save(root / "sessions.json")
+    with TranscriptExportDirectory(root / "transcripts", protected_paths=(
+            app.neural_memory.state_path, app.neural_memory.bridge_path)) as exporter:
+        snapshot = app.store.save("sessions.json", exporter=exporter)
     before = app.memory_status()["memory_digest"]
     app.close()
-    restored = create(SessionStore.load(root / "sessions.json"))
+    restored = create(SessionStore.load(snapshot))
     assert restored.store.messages(session) == ()
     assert action(ask(restored, session, "yes", confirmation_id=confirmation_id)) == "no_pending"
     assert restored.memory_status()["memory_digest"] == before

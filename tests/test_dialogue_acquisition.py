@@ -193,13 +193,15 @@ def test_ordinary_fact_is_not_automatically_acquired_and_multitoken_value_is_exp
 
 
 def test_pending_fact_is_not_serialized_and_does_not_survive_restart(dialogue):
+    from alice_runtime.export import TranscriptExportDirectory
     create, root = dialogue
     app = create()
     session = app.store.new_session("pending")
     before = digest(app)
     ask(app, session, EN)
-    snapshot = root / "sessions.json"
-    app.store.save(snapshot)
+    with TranscriptExportDirectory(root / "transcripts", protected_paths=(
+            app.neural_memory.state_path, app.neural_memory.bridge_path)) as exporter:
+        snapshot = app.store.save("sessions.json", exporter=exporter)
     data = json.loads(snapshot.read_text())
     assert all(not item["messages"] for item in data["sessions"])
     assert "window" not in snapshot.read_text() and "a-0" not in snapshot.read_text()

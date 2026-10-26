@@ -161,7 +161,8 @@ def main():
         python = str(Path(args.python).expanduser().absolute())
         base_command = [python, "-B", "-m", "alice_runtime", "--model-path", str(model),
                         "--device", args.device, "--dtype", args.dtype, "--max-new-tokens", "8",
-                        "--json", "--memory-bridge", str(bridge)]
+                        "--json", "--memory-bridge", str(bridge),
+                        "--transcript-dir", str(root / "transcripts")]
         env = os.environ.copy()
         env.pop("PYTHONPATH", None)
         env.update(HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1", OMP_NUM_THREADS="2",
@@ -203,11 +204,11 @@ def main():
 
         object_id, retained_id = "release-check-0", "release-check-1"
         question = f"Какая метка у объекта {object_id}?"
-        transcript = root / "acquisition-transcript.json"
+        transcript = root / "transcripts" / "acquisition-transcript.json"
         events, rows = run("01-acquire", [f"Запомни: метка объекта {object_id} — window.",
             "/memory status", "да", f"Remember that the label of object {retained_id} is museum.",
             "yes", "/source person:1", f"Remember that object {object_id} has label helmet.",
-            "yes", f"/save {json.dumps(str(transcript), ensure_ascii=False)}"])
+            "yes", "/save acquisition-transcript.json"])
         check([action(row) for row in rows] == ["confirmation_required", "remembered"] * 3,
               "Acquisition did not require and receive three confirmations")
         statuses = [row["memory"] for row in events if row.get("event") == "memory_status"]

@@ -1,3 +1,15 @@
+<!-- CURRENT: PRE_DAY0_CANDIDATE_REPAIRS_20261026; earlier scopes below are historical. -->
+
+The owner now authorizes a separate PRE-DAY0 candidate branch/PR to repair state
+export, response boundaries, current context with existing M, and recovery and
+resource limits. See docs/PRE_DAY0_CANDIDATE.md. Keep Qwen/Bridge/M architecture
+and published memory schemas; no training, donor replacement or new cognitive
+module. If Base remains unsuitable after the bounded technical fix, stop that
+stage with concrete evidence and a minimal owner decision. Do not merge this PR,
+accept Day0 or appoint a canonical instance without separate review/confirmation.
+
+---
+
 <!-- CURRENT: PUBLIC_V0_PRE_DAY0_20261026; older task scopes below are historical. -->
 
 Current owner authority: sequential publication/merge of Stage1 PR2, Memory PR3,

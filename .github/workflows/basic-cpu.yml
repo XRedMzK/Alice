@@ -58,6 +58,7 @@ jobs:
           tests/test_dialogue_acquisition.py
           tests/test_confirmation_binding.py
           tests/test_payload_bridge_reconstruction.py
+          tests/test_transcript_export_security.py
       - name: Install the runtime wheel and check its public entry point
         run: |
           python -m pip install --no-index --no-deps --no-build-isolation .

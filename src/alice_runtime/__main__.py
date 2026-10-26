@@ -3,6 +3,7 @@
 import argparse
 from dataclasses import asdict
 import json
+from pathlib import Path
 import shlex
 import sys
 
@@ -10,12 +11,13 @@ from .loading import load_qwen
 from .fact_intent import confirm_intent
 from .runtime import AliceRuntime
 from .sessions import SessionError, SessionStore
+from .export import TranscriptExportDirectory, TranscriptExportError
 
 
 _COMMANDS = (
     "Commands: /new, /clear, /person N, /source ID, /knowledge-source ID, "
     '/remember SOURCE_ID "question cue" "single-token value", '
-    "/memory on|off|empty|status|save, /save PATH (transcript only), /quit"
+    "/memory on|off|empty|status|save, /save NAME.json (configured transcript directory only), /quit"
 )
 
 
@@ -31,6 +33,7 @@ def _parser():
     parser.add_argument("--knowledge-source-id", help="Memory source to ask; defaults to the current speaker")
     parser.add_argument("--session", help="Existing session from --restore-sessions; omit to create a new one")
     parser.add_argument("--restore-sessions", help="Explicit transcript/identity restore, not neural memory")
+    parser.add_argument("--transcript-dir", help="Separate allowed transcript export directory; export is disabled otherwise")
     parser.add_argument("--message", action="append", help="Generate once per message; otherwise interactive")
     parser.add_argument("--memory-bridge", help="Existing sealed payload Bridge checkpoint directory")
     parser.add_argument("--memory-state", help="Independent writable memory directory; new means empty memory")
@@ -54,7 +57,7 @@ def _response_record(result):
     return record
 
 
-def _interactive(runtime, store, session, args):
+def _interactive(runtime, store, session, args, exporter=None):
     memory_enabled = args.memory_bridge is not None
     displayed_confirmation_id = None
     if args.json:
@@ -125,11 +128,9 @@ def _interactive(runtime, store, session, args):
                     _emit("memory_status", {"memory": status}, args.json,
                           json.dumps(status, ensure_ascii=False))
                 elif command == "/save" and len(parts) >= 2:
-                    # Preserve Stage 1's unquoted paths with spaces, while also
-                    # accepting the ordinary single quoted-path spelling.
-                    path = parts[1] if len(parts) == 2 else text[len("/save "):].strip()
-                    store.save(path)
-                    _emit("transcript_saved", {"path": path}, args.json, f"Transcript saved: {path}")
+                    name = parts[1] if len(parts) == 2 else text[len("/save "):].strip()
+                    path = store.save(name, exporter=exporter)
+                    _emit("transcript_saved", {"path": str(path)}, args.json, f"Transcript saved: {path}")
                 else:
                     raise ValueError("Unknown or malformed command. " + _COMMANDS)
             else:
@@ -145,7 +146,7 @@ def _interactive(runtime, store, session, args):
                 _emit("response", _response_record(result), args.json, result.text)
         except (EOFError, KeyboardInterrupt):
             break
-        except (ValueError, RuntimeError, OSError) as exc:
+        except (ValueError, RuntimeError, OSError, TranscriptExportError) as exc:
             if args.json:
                 _emit("error", {"error": str(exc)}, True)
             else:
@@ -163,6 +164,7 @@ def main() -> int:
     if memory_enabled and not 1 <= args.max_new_tokens <= 16:
         parser.error("The supported memory generation budget is 1..16 tokens")
     runtime = None
+    exporter = None
     try:
         store = SessionStore.load(args.restore_sessions) if args.restore_sessions else SessionStore()
         for number in args.person:
@@ -174,6 +176,12 @@ def main() -> int:
         if memory_enabled:
             runtime.attach_memory(args.memory_bridge, args.memory_state, model_path=args.model_path)
             runtime.set_memory_mode(args.memory_mode or "on")
+        if args.transcript_dir is not None:
+            protected = [Path(args.model_path).expanduser().resolve()]
+            if memory_enabled:
+                protected.extend(Path(path).expanduser().resolve()
+                                 for path in (args.memory_bridge, args.memory_state))
+            exporter = TranscriptExportDirectory(args.transcript_dir, protected_paths=protected)
         if args.source_id not in store.participants:
             raise SessionError("Unknown source_id")
         if args.knowledge_source_id is not None and args.knowledge_source_id not in runtime.memory_status()["source_ids"]:
@@ -184,21 +192,25 @@ def main() -> int:
                 result = runtime.respond(session, args.source_id, text, args.max_new_tokens, **options)
                 print(json.dumps(_response_record(result), ensure_ascii=False), flush=True)
         else:
-            _interactive(runtime, store, session, args)
+            _interactive(runtime, store, session, args, exporter=exporter)
         result = {"resources": runtime.resources()}
         if args.json and not args.message:
             result["event"] = "resources"
         print(json.dumps(result, ensure_ascii=False), flush=True)
         return 0
-    except (ValueError, RuntimeError, OSError) as exc:
+    except (ValueError, RuntimeError, OSError, TranscriptExportError) as exc:
         if args.json:
             _emit("error", {"error": str(exc)}, True)
         else:
             print(f"Error: {exc}", file=sys.stderr, flush=True)
         return 1
     finally:
-        if runtime is not None:
-            runtime.close()
+        try:
+            if runtime is not None:
+                runtime.close()
+        finally:
+            if exporter is not None:
+                exporter.close()
 
 
 if __name__ == "__main__":

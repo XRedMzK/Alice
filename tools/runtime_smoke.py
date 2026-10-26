@@ -107,8 +107,9 @@ def main():
     assert outputs[-1]["source_ids"] == ("user",)
     assert app.store.participants[person2.source_id].source_id != person.source_id
     with tempfile.TemporaryDirectory(prefix="alice-session-smoke-") as tmp:
-        state = Path(tmp) / "sessions.json"
-        app.store.save(state)
+        from alice_runtime.export import TranscriptExportDirectory
+        with TranscriptExportDirectory(tmp, protected_paths=(Path(args.model_path).resolve(),)) as exporter:
+            state = app.store.save("sessions.json", exporter=exporter)
         restored_store = SessionStore.load(state)
         assert restored_store.participants == app.store.participants
         assert restored_store.messages(session) == app.store.messages(session)

@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import json
-import os
 from pathlib import Path
 import re
-import tempfile
 from types import MappingProxyType
 from typing import Mapping
 from uuid import uuid4
+
+from .export import TranscriptExportDirectory, TranscriptExportError
 
 
 class SessionError(ValueError):
@@ -122,9 +122,15 @@ class SessionStore:
         self._messages(session_id)
         self._closed.add(session_id)
 
-    def save(self, path: str | Path) -> None:
-        """Atomically replace a session snapshot, preserving the old file on error."""
-        target = Path(path)
+    def save(self, name: str | Path, *, exporter: TranscriptExportDirectory | None = None) -> Path:
+        """Create a new transcript in an explicitly configured export directory.
+
+        Existing files are never replaced. Passing an arbitrary path without an
+        exporter is deliberately unsupported, including through this public API.
+        This support snapshot does not save or modify acquired Neural Memory.
+        """
+        if not isinstance(exporter, TranscriptExportDirectory):
+            raise SessionError("Transcript export is disabled; configure a separate --transcript-dir and use a new leaf filename")
         payload = {
             "version": 1,
             "participants": [
@@ -138,24 +144,11 @@ class SessionStore:
                 for session_id, messages in self._sessions.items()
             ],
         }
-        temporary: str | None = None
         try:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            with tempfile.NamedTemporaryFile(
-                mode="w", encoding="utf-8", dir=target.parent,
-                prefix=f".{target.name}.", suffix=".tmp", delete=False,
-            ) as handle:
-                temporary = handle.name
-                json.dump(payload, handle, ensure_ascii=False, indent=2)
-                handle.write("\n")
-                handle.flush()
-                os.fsync(handle.fileno())
-            os.replace(temporary, target)
-        except (OSError, ValueError, TypeError) as exc:
+            content = (json.dumps(payload, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+            return exporter.write(name, content)
+        except (TranscriptExportError, OSError, ValueError, TypeError) as exc:
             raise SessionError(f"Cannot save session state: {exc}") from exc
-        finally:
-            if temporary is not None:
-                Path(temporary).unlink(missing_ok=True)
 
     @classmethod
     def load(cls, path: str | Path) -> SessionStore:

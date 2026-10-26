@@ -97,19 +97,31 @@ def events(capsys):
     return [json.loads(line) for line in output.out.splitlines()], output.err
 
 
-def test_structured_remember_modes_and_independent_source_selection(harness, capsys, tmp_path):
+def test_structured_remember_modes_and_independent_source_selection(harness, capsys, tmp_path, monkeypatch):
     run, loads = harness
-    transcript = tmp_path / "session.json"
-    assert run(["--json", "--memory-bridge", "/bridge", "--memory-state", "/state"], [
+    transcript = tmp_path / "transcripts" / "session.json"
+    configured = []
+    real_exporter = cli.TranscriptExportDirectory
+
+    def configure(path, *, protected_paths):
+        configured.append(tuple(str(p) for p in protected_paths))
+        # This dispatch fixture supplies no real model/state assets. Real
+        # protected-directory and alias behavior is tested on temporary copies.
+        return real_exporter(path)
+
+    monkeypatch.setattr(cli, "TranscriptExportDirectory", configure)
+    assert run(["--json", "--memory-bridge", "/bridge", "--memory-state", "/state",
+                "--transcript-dir", str(transcript.parent)], [
         '/remember user "What is the assigned label of object demo?" "window"',
         '/remember person:1 "What is the assigned label of object demo?" "helmet"',
         "/memory off", "/memory empty", "/memory on", "/memory status", "/memory save",
         "/source person:1", "/knowledge-source user",
         "Which label was assigned to object demo?", "/clear", "/new",
-        f'/save "{transcript}"', "/quit",
+        '/save "session.json"', "/quit",
     ]) == 0
     output, err = events(capsys)
     assert not err and loads == [("/local/qwen", "cpu", "float32")]
+    assert configured == [("/local/qwen", "/bridge", "/state")]
     app = RuntimeSpy.instances[0]
     assert app.closed
     assert app.calls[0] == ("attach", "/bridge", "/state", "/local/qwen")
