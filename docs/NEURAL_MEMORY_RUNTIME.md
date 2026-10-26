@@ -32,6 +32,9 @@ The Bridge must be the compatible sealed full-rank payload checkpoint, schema
 basis are checked. The writable memory directory is independent of Bridge/model
 assets. A new directory starts empty; an existing compatible M is restored.
 Invalid or incompatible state is rejected, never silently reset.
+The existing recorded Bridge can be reconstructed on CPU without fitting using
+[the public reconstruction recipe](PAYLOAD_BRIDGE_RECONSTRUCTION.md). No hosted
+checkpoint download or arbitrary newly initialized Bridge is implied.
 
 ## Message acquisition with explicit confirmation
 

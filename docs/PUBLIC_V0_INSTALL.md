@@ -4,9 +4,12 @@ This release provides the Stage 1 runtime, independent parameter memory and the
 bounded RU/EN acquisition interface. It needs separately supplied local Qwen and
 sealed Bridge assets. The repository contains no model weights, trained Bridge,
 acquired experience, private conversation, calibration corpus or run artifacts.
-Source alone can run the asset-free checks; it cannot recreate the accepted
-Bridge checkpoint. Supplying an arbitrary newly initialized Bridge does not
-reproduce the demonstrated behavior.
+Source alone can run the asset-free checks. With the recorded profile, the
+[CPU reconstruction utility](PAYLOAD_BRIDGE_RECONSTRUCTION.md) recreates the
+accepted Bridge state from its fixed constructor and recorded scalar, without
+training or loading Qwen weights. Full generation still requires separately
+supplied Qwen assets. An arbitrary newly initialized Bridge does not reproduce
+the demonstrated behavior.
 
 ## Source and environment
 
@@ -127,6 +130,23 @@ referenced by its `tensor_file`. Its public compatibility identity is:
 | Value input / encoding | `token_embedding_mean_v1` / `orthogonal_block_payload_v1` |
 | Query normalization / layout | `bounded_relation_entity_v1` / `repeat_qa_turn_stop_v1` |
 
+No hosted Bridge checkpoint URL is published. To obtain this existing state
+without a local checkpoint, reconstruct it using the installed package and an
+existing compatible model directory:
+
+```bash
+"$ALICE_PYTHON" tools/reconstruct_payload_bridge.py \
+  --model-path "$ALICE_MODEL_PATH" --output "$ALICE_BRIDGE_PATH"
+```
+
+The output must be new and separate from model/memory assets. The utility checks
+both local metadata bindings and the exact state digest before saving and after
+restore. It never fits, downloads or loads Qwen weights. See
+[the recipe and compatibility limits](PAYLOAD_BRIDGE_RECONSTRUCTION.md).
+If exact identity fails on another CPU/Torch backend, stop and report that
+dependency failure; no universally portable reconstruction or public hosted
+fallback is claimed.
+
 The runtime checks Bridge schema, tensor checksum, parameter digest, latent
 basis, dimensions, semantics and SHA-256 bindings of model `config.json` and
 `tokenizer_config.json`. Those two bindings do not fingerprint every model or
@@ -208,7 +228,8 @@ PYTHONPATH=src PYTHONDONTWRITEBYTECODE=1 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
   tests/test_foundation0_cpu.py::test_01_manifest_and_schema_validation \
   tests/test_foundation0_cpu.py::test_02_registry_graph_and_semantics_blind_routing \
   tests/test_memory_*.py tests/test_runtime_*.py tests/test_confirmation_binding.py \
-  tests/test_fact_intent.py tests/test_dialogue_acquisition.py
+  tests/test_fact_intent.py tests/test_dialogue_acquisition.py \
+  tests/test_payload_bridge_reconstruction.py
 ```
 
 For the opt-in real-model check, choose a **new** output directory outside the
