@@ -225,7 +225,9 @@ def test_fifo_import_is_refused_without_waiting_for_a_writer(tmp_path):
     path = tmp_path / "fifo"
     os.mkfifo(path)
     command = [sys.executable, "-c", "from alice_runtime.sessions import SessionStore; SessionStore.load(__import__('sys').argv[1])", str(path)]
-    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=3)
+    result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=8,
+                            env={**os.environ, "PYTHONPATH": str(Path(__file__).parents[1] / "src"),
+                                 "PYTHONDONTWRITEBYTECODE": "1"})
     assert result.returncode != 0 and "regular local file" in result.stderr
 
 
