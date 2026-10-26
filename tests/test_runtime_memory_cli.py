@@ -154,6 +154,27 @@ def test_legacy_batch_output_and_default_arguments_are_preserved(harness, capsys
     assert app.closed and loads == [("/local/qwen", "cpu", "float32")]
 
 
+def test_interactive_confirmation_carries_last_displayed_content_id(harness, capsys, monkeypatch):
+    run, _loads = harness
+    calls = []
+
+    def respond(self, session, source, text, limit, **kwargs):
+        calls.append((text, kwargs))
+        actions = [("confirmation_required", "fact-A"),
+                   ("stale_confirmation", "fact-B"), ("remembered", None)]
+        action, identity = actions[len(calls) - 1]
+        return Answer("Shown fact", session, {"dialogue_action": action,
+                                             "confirmation_id": identity})
+
+    monkeypatch.setattr(RuntimeSpy, "respond", respond)
+    assert run(["--json", "--memory-bridge", "/bridge", "--memory-state", "/state"],
+               ["Remember that object a-0 has label window.", "yes", "yes"]) == 0
+    events(capsys)
+    assert "confirmation_id" not in calls[0][1]
+    assert calls[1][1]["confirmation_id"] == "fact-A"
+    assert calls[2][1]["confirmation_id"] == "fact-B"
+
+
 def test_memory_batch_dispatches_target_and_mode(harness, capsys):
     run, _ = harness
     assert run(["--memory-bridge", "/bridge", "--memory-state", "/state",

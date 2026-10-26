@@ -7,6 +7,7 @@ import shlex
 import sys
 
 from .loading import load_qwen
+from .fact_intent import confirm_intent
 from .runtime import AliceRuntime
 from .sessions import SessionError, SessionStore
 
@@ -55,6 +56,7 @@ def _response_record(result):
 
 def _interactive(runtime, store, session, args):
     memory_enabled = args.memory_bridge is not None
+    displayed_confirmation_id = None
     if args.json:
         ready = {"session_id": session, "source_id": args.source_id,
                  "knowledge_source_id": args.knowledge_source_id or args.source_id}
@@ -79,10 +81,12 @@ def _interactive(runtime, store, session, args):
                     break
                 if command == "/new" and len(parts) == 1:
                     runtime.clear_pending_memory(session)
+                    displayed_confirmation_id = None
                     session = store.new_session()
                     _emit("session", {"session_id": session}, args.json, f"Session: {session}")
                 elif command == "/clear" and len(parts) == 1:
                     runtime.clear_session(session)
+                    displayed_confirmation_id = None
                     _emit("session_cleared", {"session_id": session}, args.json, "Session cleared.")
                 elif command == "/person" and len(parts) == 2:
                     participant = store.add_person(int(parts[1]))
@@ -91,6 +95,7 @@ def _interactive(runtime, store, session, args):
                     if parts[1] not in store.participants:
                         raise SessionError("Unknown source_id")
                     runtime.clear_pending_memory(session)
+                    displayed_confirmation_id = None
                     args.source_id = parts[1]
                     _emit("source", {"source_id": args.source_id}, args.json, f"Speaker: {args.source_id}")
                 elif command == "/knowledge-source" and len(parts) == 2:
@@ -103,6 +108,7 @@ def _interactive(runtime, store, session, args):
                           f"Knowledge source: {parts[1]}")
                 elif command == "/remember" and len(parts) == 4:
                     receipt = runtime.remember(parts[1], parts[2], parts[3])
+                    displayed_confirmation_id = None
                     _emit("remembered", {"receipt": receipt}, args.json,
                           f"Remembered and saved for {parts[1]}.")
                 elif command == "/memory" and len(parts) == 2:
@@ -128,7 +134,14 @@ def _interactive(runtime, store, session, args):
                     raise ValueError("Unknown or malformed command. " + _COMMANDS)
             else:
                 options = ({"knowledge_source_id": args.knowledge_source_id} if memory_enabled else {})
+                if (memory_enabled and displayed_confirmation_id is not None
+                        and confirm_intent(text) is not None):
+                    options["confirmation_id"] = displayed_confirmation_id
                 result = runtime.respond(session, args.source_id, text, args.max_new_tokens, **options)
+                info = result.memory_info or {}
+                displayed_confirmation_id = (info.get("confirmation_id")
+                    if info.get("dialogue_action") in {"confirmation_required", "stale_confirmation"}
+                    else None)
                 _emit("response", _response_record(result), args.json, result.text)
         except (EOFError, KeyboardInterrupt):
             break
