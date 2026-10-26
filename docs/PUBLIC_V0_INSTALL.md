@@ -208,7 +208,9 @@ bound to its session, source and exact content.
 
 `/memory off`, `/memory empty` and `/memory on` change reads without erasing M.
 Explicit confirmed acquisition still writes while reads are OFF. `/new` and
-`/clear` affect sessions only. `/save PATH` saves a transcript, not neural memory.
+`/clear` affect sessions only. `/save NEW_NAME.json` saves a transcript, not neural
+memory; this candidate requires an explicit separate `--transcript-dir` and a new
+leaf filename. See [candidate launch/recovery and known blockers](PRE_DAY0_CANDIDATE.md).
 The [runtime guide](NEURAL_MEMORY_RUNTIME.md) describes the API and manual
 structured-acquisition fallback. Successful recall goes through frozen Qwen;
 only clarification, confirmation and saved acknowledgements use templates.

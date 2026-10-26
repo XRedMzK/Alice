@@ -1,5 +1,14 @@
 # Alice Public v0 architecture
 
+Candidate branch scope: inference-only response boundaries, safe support-state
+export, terminal recovery state, paired M/Bridge backup/restore, and bounded
+history retention. Published M/Bridge schemas and neural architecture are
+unchanged. An opt-in active-context prefix around the existing neural QA layout
+failed real semantic integration; it is not accepted architecture or a new
+cognitive module. See [PRE-DAY0 candidate](docs/PRE_DAY0_CANDIDATE.md).
+The baseline description below records public `faa03d3`; its unsafe `/save PATH`
+API is deliberately closed on this branch in favor of explicit create-only export.
+
 Public v0 combines the frozen-Qwen Stage 1 runtime, independently persisted
 Neural Memory and bounded confirmed RU/EN acquisition. Publication is authorized
 by the owner on 26 October 2026; it is not Day0 acceptance. See [STATUS](STATUS.md)

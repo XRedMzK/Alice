@@ -37,6 +37,9 @@ class RuntimeSpy:
         self.calls.append(("mode", mode))
         self.mode = mode
 
+    def set_memory_context(self, profile):
+        self.calls.append(("memory_context", profile))
+
     def remember(self, source, cue, value):
         if not self.attached:
             raise ValueError("Neural Memory is not attached")
@@ -97,19 +100,31 @@ def events(capsys):
     return [json.loads(line) for line in output.out.splitlines()], output.err
 
 
-def test_structured_remember_modes_and_independent_source_selection(harness, capsys, tmp_path):
+def test_structured_remember_modes_and_independent_source_selection(harness, capsys, tmp_path, monkeypatch):
     run, loads = harness
-    transcript = tmp_path / "session.json"
-    assert run(["--json", "--memory-bridge", "/bridge", "--memory-state", "/state"], [
+    transcript = tmp_path / "transcripts" / "session.json"
+    configured = []
+    real_exporter = cli.TranscriptExportDirectory
+
+    def configure(path, *, protected_paths):
+        configured.append(tuple(str(p) for p in protected_paths))
+        # This dispatch fixture supplies no real model/state assets. Real
+        # protected-directory and alias behavior is tested on temporary copies.
+        return real_exporter(path)
+
+    monkeypatch.setattr(cli, "TranscriptExportDirectory", configure)
+    assert run(["--json", "--memory-bridge", "/bridge", "--memory-state", "/state",
+                "--transcript-dir", str(transcript.parent)], [
         '/remember user "What is the assigned label of object demo?" "window"',
         '/remember person:1 "What is the assigned label of object demo?" "helmet"',
         "/memory off", "/memory empty", "/memory on", "/memory status", "/memory save",
         "/source person:1", "/knowledge-source user",
         "Which label was assigned to object demo?", "/clear", "/new",
-        f'/save "{transcript}"', "/quit",
+        '/save "session.json"', "/quit",
     ]) == 0
     output, err = events(capsys)
     assert not err and loads == [("/local/qwen", "cpu", "float32")]
+    assert configured == [("/local/qwen", "/bridge", "/state")]
     app = RuntimeSpy.instances[0]
     assert app.closed
     assert app.calls[0] == ("attach", "/bridge", "/state", "/local/qwen")
@@ -117,6 +132,7 @@ def test_structured_remember_modes_and_independent_source_selection(harness, cap
     assert ("remember", "person:1", "What is the assigned label of object demo?", "helmet") in app.calls
     assert ("respond", "person:1", "Which label was assigned to object demo?", 16,
             {"knowledge_source_id": "user"}) in app.calls
+    assert ("memory_context", "question") in app.calls
     assert [c for c in app.calls if c[0] == "mode"] == [
         ("mode", "on"), ("mode", "off"), ("mode", "empty"), ("mode", "on")]
     assert sum(c[0] == "attach" for c in app.calls) == 1  # new/clear never reset memory.
@@ -141,7 +157,7 @@ def test_malformed_commands_are_errors_and_do_not_reach_generation(harness, caps
     assert app.closed
 
 
-def test_legacy_batch_output_and_default_arguments_are_preserved(harness, capsys):
+def test_batch_output_and_bounded_candidate_defaults(harness, capsys):
     run, loads = harness
     assert run(["--message", "Hello", "--message", "Again"]) == 0
     output, err = events(capsys)
@@ -150,7 +166,7 @@ def test_legacy_batch_output_and_default_arguments_are_preserved(harness, capsys
     assert "memory_info" not in output[0] and "memory_info" not in output[1]
     assert "event" not in output[0] and "resources" in output[-1]
     app = RuntimeSpy.instances[0]
-    assert app.calls == [("respond", "user", "Hello", 16, {}), ("respond", "user", "Again", 16, {})]
+    assert app.calls == [("respond", "user", "Hello", 32, {}), ("respond", "user", "Again", 32, {})]
     assert app.closed and loads == [("/local/qwen", "cpu", "float32")]
 
 
@@ -188,10 +204,20 @@ def test_memory_batch_dispatches_target_and_mode(harness, capsys):
     assert app.closed
 
 
+def test_experimental_conversation_is_explicit_and_reserves_larger_output(harness, capsys):
+    run, _ = harness
+    assert run(["--memory-bridge", "/bridge", "--memory-state", "/state",
+                "--memory-context", "conversation", "--message", "Question"]) == 0
+    events(capsys)
+    app = RuntimeSpy.instances[0]
+    assert ("memory_context", "conversation") in app.calls
+    assert ("respond", "user", "Question", 32, {"knowledge_source_id": None}) in app.calls
+
+
 @pytest.mark.parametrize("arguments", [
     ["--memory-state", "/state"], ["--memory-bridge", "/bridge"],
     ["--memory-mode", "off"], ["--knowledge-source-id", "user"],
-    ["--memory-bridge", "/bridge", "--memory-state", "/state", "--max-new-tokens", "17"],
+    ["--memory-bridge", "/bridge", "--memory-state", "/state", "--memory-context", "question", "--max-new-tokens", "17"],
 ])
 def test_invalid_startup_flags_rejected_before_loading(harness, arguments):
     run, loads = harness

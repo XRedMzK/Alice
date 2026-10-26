@@ -14,6 +14,7 @@ from .bridge import BridgeContext, EmbeddingBridgePort, MessageSpan
 from .loading import LoadedQwen
 from .sessions import Message, SessionStore
 from .fact_intent import confirm_intent, normalize_fact_question, parse_memory_intent
+from .generation import SingleTurnStoppingCriteria, cut_turn
 
 
 class RuntimeInputError(ValueError):
@@ -31,6 +32,8 @@ class GenerationResult:
     bridge_calls: int
     context_messages_dropped: int
     memory_info: dict | None = None
+    finish_reason: str | None = None
+    stop_sequence: str | None = None
 
 
 @dataclass(frozen=True)
@@ -41,25 +44,29 @@ class PendingMemoryFact:
     value: str
     object_id: str
     language: str
+    session_incarnation: str
     confirmation_id: str
 
     @classmethod
-    def create(cls, session_id, source_id, cue, value, object_id, language):
+    def create(cls, session_id, source_id, cue, value, object_id, language, *, session_incarnation):
         content = json.dumps(
             {"session_id": session_id, "source_id": source_id, "cue": cue,
-             "value": value, "object_id": object_id, "language": language},
+             "value": value, "object_id": object_id, "language": language,
+             "session_incarnation": session_incarnation},
             sort_keys=True, ensure_ascii=False, separators=(",", ":"),
         ).encode("utf-8")
         # The nonce distinguishes repeated proposals of even the identical fact.
         confirmation_id = f"{uuid4().hex}:{hashlib.sha256(content).hexdigest()}"
-        return cls(session_id, source_id, cue, value, object_id, language, confirmation_id)
+        return cls(session_id, source_id, cue, value, object_id, language,
+                   session_incarnation, confirmation_id)
 
 
 class AliceRuntime:
     """Frozen generation with disposable sessions and optional persistent memory.
 
-    Memory mode reuses the proven question-only neural input layout. Transcripts
-    remain UI history and are never replayed into that path or learned implicitly.
+    The legacy API profile keeps question-only input. An explicit conversation
+    profile adds bounded active-session context without a persisted transcript
+    channel or implicit learning. Neural slots retain their existing layout.
     Explicit remember() changes only separately persisted memory parameters.
     """
 
@@ -78,6 +85,7 @@ class AliceRuntime:
         self._lock = threading.RLock()
         self._neural_memory = None
         self._memory_mode = "on"
+        self._memory_context = "question"
         self._closed = False
         self._pending_memory: PendingMemoryFact | None = None
         self._versions = {name: p._version for name, p in self.model.named_parameters()}
@@ -126,7 +134,19 @@ class AliceRuntime:
                 return {"attached": False, "mode": "off", "source_ids": []}
             return {**self._neural_memory.status(), "attached": True,
                     "mode": self._memory_mode,
-                    "query_context": "current_question_only_v1"}
+                    "query_context": ("current_question_only_v1" if self._memory_context == "question"
+                                      else "current_session_context_v1")}
+
+    def set_memory_context(self, profile: str) -> None:
+        """Select an explicit input profile without changing acquired state."""
+        with self._lock:
+            self._require_open()
+            if self._neural_memory is None:
+                raise RuntimeInputError("Attach Neural Memory before choosing its context profile")
+            self._neural_memory._assert_open()
+            if profile not in {"question", "conversation"}:
+                raise RuntimeInputError("Memory context must be question or conversation")
+            self._memory_context = profile
 
     def set_memory_mode(self, mode: str) -> None:
         with self._lock:
@@ -195,6 +215,12 @@ class AliceRuntime:
         confirmation = confirm_intent(text)
         pending = self._pending_memory
         if confirmation is not None:
+            if (pending is not None and pending.session_id == session_id
+                    and pending.session_incarnation != self.store.session_incarnation(session_id)):
+                # Retention may have evicted the former session with this ID.
+                # A fresh session never inherits its proposal or consent token.
+                self._pending_memory = None
+                pending = None
             if pending is None or (pending.session_id, pending.source_id) != (session_id, source_id):
                 language_ru = any("а" <= c.lower() <= "я" for c in text)
                 reply = ("Нет ожидающего подтверждения для этого источника в этой сессии. "
@@ -240,9 +266,10 @@ class AliceRuntime:
                      f"Source {source_id} is not supported by this memory registry. Memory was not changed.")
             return self._dialogue_result(session_id, source_id, reply, "unsupported", started)
         from alice_memory.bridge import BridgeStateError
+        from .neural_memory import MemoryRestartRequiredError
         try:
             self._neural_memory.validate_fact(source_id, intent.cue, intent.value)
-        except BridgeStateError:
+        except (BridgeStateError, MemoryRestartRequiredError):
             raise  # A broken frozen Bridge is a system error, not a bad value.
         except ValueError:
             reply = ("Это знание пока не поддерживается: требуется однотокенное значение и короткий явный ID объекта. Память не менялась."
@@ -250,7 +277,8 @@ class AliceRuntime:
                      "This fact is not supported: the value must be one model token and the object ID short and explicit. Memory was not changed.")
             return self._dialogue_result(session_id, source_id, reply, "unsupported", started)
         self._pending_memory = PendingMemoryFact.create(session_id, source_id, intent.cue,
-                                                      intent.value, intent.object_id, intent.language)
+            intent.value, intent.object_id, intent.language,
+            session_incarnation=self.store.session_incarnation(session_id))
         reply = (f"Запомнить: метка объекта {intent.object_id} — {intent.value}, источник {source_id}? Ответьте «да» или «нет»."
                  if intent.language == "ru" else
                  f"Remember that object {intent.object_id} has label {intent.value}, from source {source_id}? Reply yes or no.")
@@ -263,6 +291,17 @@ class AliceRuntime:
             if self._neural_memory is None:
                 raise RuntimeInputError("No Neural Memory is attached")
             return self._neural_memory.save()
+
+    def backup_memory(self, destination) -> dict:
+        """Back up the committed M and matching Bridge to a new bundle only."""
+        with self._lock:
+            self._require_open()
+            if self._neural_memory is None:
+                raise RuntimeInputError("Attach Neural Memory before creating its backup")
+            self.assert_frozen()
+            result = self._neural_memory.backup(destination)
+            self.assert_frozen()
+            return result
 
     def close(self) -> None:
         with self._lock:
@@ -278,40 +317,51 @@ class AliceRuntime:
     def __exit__(self, *_):
         self.close()
 
-    def _prepare(self, session_id: str, messages: tuple[Message, ...]):
-        # Each complete message owns its token segment, including its trailing
-        # newline. Rendered prompt bytes match Stage 1, but preventing BPE merges
-        # across source boundaries can change token IDs at those boundaries.
-        # This versioned assembly supplies exact, non-overlapping source spans;
-        # it does not claim logit equivalence with Stage 1's whole-string encode.
-        selected = list(messages)
+    def _prepare(self, session_id: str, messages: tuple[Message, ...], *, reserve_tokens: int = 0):
+        # Encode each segment at most once, from the current bounded suffix.
+        # Old messages beyond the first rejected segment are never tokenized.
+        if type(reserve_tokens) is not int or not 0 <= reserve_tokens <= 64:
+            raise RuntimeInputError("Invalid output reservation")
+        limit = self.max_context_tokens - reserve_tokens
         participants = self.store.participants
-        while True:
-            ids, spans = [], []
-            for message in selected:
-                rendered = (
-                    f"{participants[message.source_id].label} "
-                    f"[source_id={message.source_id}]: {message.text}\n"
-                )
-                segment = self.tokenizer.encode(rendered, add_special_tokens=False)
-                if not segment:
-                    raise RuntimeInputError("Tokenizer returned an empty message segment")
-                start = len(ids)
-                ids.extend(segment)
-                spans.append(MessageSpan(message.source_id, start, len(ids)))
-            ids.extend(self.tokenizer.encode("Agent [source_id=agent]:", add_special_tokens=False))
-            if len(ids) <= self.max_context_tokens:
+        tail = self.tokenizer.encode("Agent [source_id=agent]:", add_special_tokens=False)
+        used, selected = len(tail), []
+        for message in reversed(messages):
+            rendered = (
+                f"{participants[message.source_id].label} "
+                f"[source_id={message.source_id}]: {message.text}\n"
+            )
+            segment = self.tokenizer.encode(rendered, add_special_tokens=False)
+            if not segment:
+                raise RuntimeInputError("Tokenizer returned an empty message segment")
+            if used + len(segment) > limit:
+                if not selected:
+                    raise RuntimeInputError("Current message plus reserved output exceeds the context token budget")
                 break
-            if len(selected) <= 1:
-                raise RuntimeInputError("Current message exceeds the context token budget")
-            selected.pop(0)  # Drop whole old messages; never cut a source header.
+            selected.append((message, segment))
+            used += len(segment)
+        if not selected:
+            raise RuntimeInputError("A current message is required")
+        selected.reverse()
+        # A suffix must not begin with an assistant reply whose incoming turn
+        # was dropped. Never remove the final/current message, including an
+        # explicit Agent-authored request. Do not refill from older history.
+        if len(selected) < len(messages):
+            while len(selected) > 1 and selected[0][0].source_id == "agent":
+                selected.pop(0)
+        ids, spans = [], []
+        for message, segment in selected:
+            start = len(ids)
+            ids.extend(segment)
+            spans.append(MessageSpan(message.source_id, start, len(ids)))
+        ids.extend(tail)
         device = self.model.get_input_embeddings().weight.device
         inputs = torch.tensor([ids], dtype=torch.long, device=device)
         context = BridgeContext(
             session_id,
-            tuple(message.source_id for message in selected),
-            current_source_id=selected[-1].source_id if selected else None,
-            knowledge_source_id=None,  # The current speaker is not the queried knowledge source.
+            tuple(message.source_id for message, _segment in selected),
+            current_source_id=selected[-1][0].source_id,
+            knowledge_source_id=None,
             message_spans=tuple(spans),
         )
         return inputs, context, len(messages) - len(selected)
@@ -352,9 +402,10 @@ class AliceRuntime:
             incoming = self.store.validate_message(source_id, text)
             history = self.store.messages(session_id)
             if self._neural_memory is not None:
+                self._neural_memory._assert_open()
                 if self.bridge.attached:
                     raise RuntimeInputError("External embedding hook and Neural Memory cannot be combined")
-                if max_new_tokens > 16:
+                if self._memory_context == "question" and max_new_tokens > 16:
                     raise RuntimeInputError("Neural Memory generation budget must be 1..16 tokens")
                 control = self._memory_dialogue(session_id, source_id, text,
                                                 pending_at_entry=pending_at_entry,
@@ -366,30 +417,55 @@ class AliceRuntime:
                 self.assert_frozen()
                 from alice_memory.runtime import Question
                 adapted_question = normalize_fact_question(text)
-                answer = self._neural_memory.respond(
-                    Question(adapted_question or text, source_id, target), mode=self._memory_mode,
-                    max_new_tokens=max_new_tokens)
+                request = Question(adapted_question or text, source_id, target)
+                if self._memory_context == "conversation":
+                    participants = self.store.participants
+
+                    def rendered(message):
+                        return (f"{participants[message.source_id].label} "
+                                f"[source_id={message.source_id}]: {message.text}\n")
+
+                    def history_segments():
+                        for message in reversed(history):
+                            yield message.source_id, tuple(self.tokenizer.encode(
+                                rendered(message), add_special_tokens=False))
+
+                    current_ids = tuple(self.tokenizer.encode(
+                        rendered(incoming), add_special_tokens=False)) + tuple(self.tokenizer.encode(
+                        "Agent [source_id=agent]:", add_special_tokens=False))
+                    answer = self._neural_memory.respond_with_context(
+                        request, history_segments(), current_ids,
+                        history_message_count=len(history), mode=self._memory_mode,
+                        max_new_tokens=max_new_tokens)
+                else:
+                    answer = self._neural_memory.respond(
+                        request, mode=self._memory_mode, max_new_tokens=max_new_tokens)
                 self.assert_frozen()
                 self.store.append_result(session_id, incoming, answer["text"])
                 info = {k: v for k, v in answer.items() if k != "text"}
-                info["query_context"] = "current_question_only_v1"
-                info["prompt_assembly_version"] = "repeat_qa_turn_stop_v1"
+                info["query_context"] = ("current_question_only_v1" if self._memory_context == "question"
+                                         else "current_session_context_v1")
+                info["prompt_assembly_version"] = answer.get(
+                    "prompt_assembly_version", "repeat_qa_turn_stop_v1")
                 info["dialogue_query_adapter"] = "bounded_object_label_ru_v1" if adapted_question else None
-                input_count = len(self.tokenizer.encode(
-                    f"Question: {adapted_question or text}\nAnswer:", add_special_tokens=False))
-                if answer["memory_applied"]:
+                input_count = answer.get("input_tokens")
+                if input_count is None:
+                    input_count = len(self.tokenizer.encode(
+                        f"Question: {adapted_question or text}\nAnswer:", add_special_tokens=False))
+                if self._memory_context == "question" and answer["memory_applied"]:
                     input_count += 1 + len(self.tokenizer.encode(
                         f"\nQuestion: {adapted_question or text}\nAnswer:", add_special_tokens=False))
                 return GenerationResult(
-                    answer["text"], session_id, (source_id,),
+                    answer["text"], session_id, tuple(answer.get("context_source_ids", (source_id,))),
                     input_count,
                     answer["tokens"], answer["seconds"], int(answer["memory_applied"]),
-                    len(history), info,
+                    answer.get("context_messages_dropped", len(history)), info,
+                    finish_reason=answer.get("finish_reason"), stop_sequence=answer.get("stop_sequence"),
                 )
             if knowledge_source_id is not None:
                 raise RuntimeInputError("knowledge_source_id requires attached Neural Memory")
             inputs, context, dropped = self._prepare(
-                session_id, history + (incoming,)
+                session_id, history + (incoming,), reserve_tokens=max_new_tokens
             )
             self.assert_frozen()
             started, calls = time.perf_counter(), self.bridge.calls
@@ -403,16 +479,22 @@ class AliceRuntime:
                         max_new_tokens=max_new_tokens, do_sample=False, use_cache=False,
                         eos_token_id=self.model.config.eos_token_id,
                         pad_token_id=pad,
+                        stopping_criteria=[SingleTurnStoppingCriteria(self.tokenizer, inputs.shape[1])],
                     )
                 if inputs.device.type == "cuda":
                     torch.cuda.synchronize(inputs.device)
                 generated = output[0, inputs.shape[1]:].tolist()
-                response = self.tokenizer.decode(generated, skip_special_tokens=True).strip()
+                suffix = self.tokenizer.decode(generated, skip_special_tokens=True)
+                boundary = cut_turn(suffix, allow_partial=len(generated) >= max_new_tokens)
+                response = boundary.text.strip()
                 self.assert_frozen()
                 self.store.append_result(session_id, incoming, response)
                 return GenerationResult(
                     response, session_id, context.source_ids, inputs.shape[1], len(generated),
                     time.perf_counter() - started, self.bridge.calls - calls, dropped,
+                    finish_reason=boundary.finish_reason or (
+                        "token_limit" if len(generated) >= max_new_tokens else "eos"),
+                    stop_sequence=boundary.stop_sequence,
                 )
             except torch.cuda.OutOfMemoryError as exc:
                 raise RuntimeError("Insufficient VRAM; reduce explicit context/output budget") from exc
@@ -420,6 +502,7 @@ class AliceRuntime:
     def resources(self) -> dict:
         device = self.model.get_input_embeddings().weight.device
         result = {"process_peak_rss_mib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024}
+        result["session_retention"] = self.store.retention_status()
         if device.type == "cuda":
             result.update(
                 cuda_allocated_mib=torch.cuda.memory_allocated(device) / 2**20,

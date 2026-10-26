@@ -122,7 +122,8 @@ the current M. The default memory registry is agent/user/person:1/person:2.
 is queried. The persisted registry is fixed; adding a UI participant does not
 silently add a neural source plane.
 
-`/new` and `/clear` affect only the session. `/save PATH` writes a transcript,
+`/new` and `/clear` affect only the session. `/save NEW_NAME.json` writes a transcript
+only inside an explicit `--transcript-dir`, without replacing existing files,
 not memory. Acquisition is not appended to session history. EOF, Ctrl-C and
 `/quit` release the single-writer lock. Concurrent writers, bad checksums and
 overlapping state/Bridge/model directories fail explicitly.
