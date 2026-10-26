@@ -161,7 +161,7 @@ def main():
         python = str(Path(args.python).expanduser().absolute())
         base_command = [python, "-B", "-m", "alice_runtime", "--model-path", str(model),
                         "--device", args.device, "--dtype", args.dtype, "--max-new-tokens", "8",
-                        "--json", "--memory-bridge", str(bridge),
+                        "--json", "--memory-bridge", str(bridge), "--memory-context", "question",
                         "--transcript-dir", str(root / "transcripts")]
         env = os.environ.copy()
         env.pop("PYTHONPATH", None)

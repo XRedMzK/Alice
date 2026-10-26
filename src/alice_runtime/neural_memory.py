@@ -26,6 +26,13 @@ from alice_memory.payload_runtime import PayloadMemoryRuntime
 from alice_memory.runtime import Fact, Question
 
 
+class MemoryRestartRequiredError(RuntimeError, MemoryStateError):
+    """The checkpoint may have committed; reopen it before another operation."""
+
+    error_code = "memory_restart_required"
+    restart_required = True
+
+
 class NeuralMemorySession:
     """One writable memory directory, one Qwen instance, and an immutable Bridge.
 
@@ -42,6 +49,8 @@ class NeuralMemorySession:
         self._lock = threading.RLock()
         self._lock_fd = None
         self._closed = False
+        self._restart_required = False
+        self._restart_reason = None
         self._persisted = False
         self._cleanup_warning = None
         self.bridge_path = Path(bridge_path).expanduser().resolve()
@@ -54,9 +63,11 @@ class NeuralMemorySession:
                 or self.bridge_path.is_relative_to(self.state_path)):
             raise MemoryStateError("Memory and immutable Bridge directories must be separate")
         model_path = model_path or loaded.metadata.get("model_path")
+        self.model_path = None
         expected_bindings = None
         if model_path is not None:
             model_root = Path(model_path).expanduser().resolve()
+            self.model_path = model_root
             if (self.state_path == model_root or self.state_path.is_relative_to(model_root)
                     or model_root.is_relative_to(self.state_path)):
                 raise MemoryStateError("Memory directory must be separate from model assets")
@@ -115,6 +126,8 @@ class NeuralMemorySession:
             raise MemoryStateError("Nonempty directory has no memory manifest; refusing to reset it")
 
     def _assert_open(self):
+        if self._restart_required:
+            raise MemoryRestartRequiredError(self._restart_reason)
         if self._closed or self._lock_fd is None:
             raise MemoryStateError("Neural Memory session is closed")
 
@@ -131,12 +144,22 @@ class NeuralMemorySession:
             except BaseException:
                 uncertain = True
         if uncertain:
+            self._restart_required = True
+            self._restart_reason = (
+                "Neural Memory session is closed; restart required: publication may have committed. "
+                "Restart and restore the checkpoint before retrying; no save was acknowledged."
+            )
             self.close()
             if isinstance(error, MemoryCommitUncertainError):
+                error.error_code = MemoryRestartRequiredError.error_code
+                error.restart_required = True
                 raise error
-            raise MemoryCommitUncertainError(
+            failure = MemoryCommitUncertainError(
                 "Memory publication may have committed; reopen the checkpoint before retrying"
-            ) from error
+            )
+            failure.error_code = MemoryRestartRequiredError.error_code
+            failure.restart_required = True
+            raise failure from error
 
     def _publish(self):
         before_manifest = self._manifest_bytes()
@@ -219,6 +242,26 @@ class NeuralMemorySession:
                 raise MemoryStateError("Memory generation budget must be 1..16 tokens")
             return self.engine.answer(request, mode, max_new_tokens)
 
+    def respond_with_context(self, request: Question, history_segments, current_turn_ids, *,
+                             history_message_count: int, mode: str = "on",
+                             max_new_tokens: int = 32) -> dict:
+        """Use caller-supplied current-session tokens, never a stored transcript.
+
+        The separate legacy question-only method retains its published budget.
+        This interface adds no persistent fields or acquisition capability.
+        """
+        with self._lock:
+            self._assert_open()
+            if mode not in {"on", "off", "empty"}:
+                raise MemoryStateError("Interactive memory mode must be on, off or empty")
+            if type(max_new_tokens) is not int or not 1 <= max_new_tokens <= 64:
+                raise MemoryStateError("Conversation generation budget must be 1..64 tokens")
+            return self.engine.answer_with_context(
+                request, history_segments, current_turn_ids,
+                history_message_count=history_message_count, mode=mode,
+                max_new_tokens=max_new_tokens,
+            )
+
     def save(self) -> dict:
         """Explicitly publish current M, including an intentionally empty state."""
         with self._lock:
@@ -233,6 +276,28 @@ class NeuralMemorySession:
                 self._check_failed_commit(before_manifest, exc)
                 raise
 
+    def backup(self, destination) -> dict:
+        """Copy committed M and its current immutable Bridge into a fresh bundle.
+
+        The existing process lock and this service lock hold the snapshot stable.
+        The active checkpoint is neither republished nor modified by this call.
+        """
+        from .memory_backup import _backup_locked
+
+        with self._lock:
+            self._assert_open()
+            self.bridge.assert_frozen()
+            self.engine.assert_qwen_frozen()
+            if not self._persisted:
+                raise MemoryStateError("Save memory before creating a checkpoint backup")
+            return _backup_locked(
+                self.state_path, self.bridge_path, destination,
+                expected_memory_digest=self.memory.content_digest(),
+                expected_bridge_digest=self.bridge.parameter_digest(),
+                protected_roots=(() if self.model_path is None else (self.model_path,)),
+                held_lock_fd=self._lock_fd,
+            )
+
     def status(self) -> dict:
         with self._lock:
             result = {
@@ -243,7 +308,13 @@ class NeuralMemorySession:
                 "bridge_digest": self.bridge.parameter_digest(),
                 "state_path": str(self.state_path), "bridge_path": str(self.bridge_path),
                 "persisted": self._persisted, "closed": self._closed,
+                "state": "restart_required" if self._restart_required else (
+                    "closed" if self._closed else "open"),
+                "restart_required": self._restart_required,
             }
+            if self._restart_required:
+                result.update(error_code=MemoryRestartRequiredError.error_code,
+                              restart_reason=self._restart_reason)
             if self._cleanup_warning:
                 result["cleanup_warning"] = self._cleanup_warning
             return result

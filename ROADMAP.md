@@ -1,5 +1,11 @@
 # Alice functional roadmap — Public v0 / PRE-DAY0
 
+Candidate continuation, 26 October 2026: state export, response stopping,
+restart-required, paired backup/restore and bounded disposable-history repairs
+are prepared separately. Ordinary Base dialogue and active context with M remain
+blocking; no new cognitive module, training, donor replacement or Day0 acceptance
+follows from these repairs. See [candidate results](docs/PRE_DAY0_CANDIDATE.md).
+
 26 October 2026. Engineering First v2 and the functional roadmap were approved
 at PR #1 `9c29e08`, merged as `641d40e`. The owner authorized sequential public
 integration of Stage 1, Memory and Dialogue on 26 October 2026.

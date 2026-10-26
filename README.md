@@ -1,5 +1,11 @@
 # Alice
 
+This PRE-DAY0 candidate branch is **NOT READY** and is prepared for draft review.
+State-export/recovery and retention repairs do not resolve the demonstrated
+Base dialogue/context interference. See [candidate evidence, launch and recovery](docs/PRE_DAY0_CANDIDATE.md).
+The failed conversation-memory profile is opt-in; the published question-only
+profile remains the default. No training or donor change was performed.
+
 Alice is an engineering project for a functioning modular cognitive system,
 informed by research and existing technical solutions. Its direction is an independently owned, changeable
 cognitive state and acquired experience that can survive replacement of a language

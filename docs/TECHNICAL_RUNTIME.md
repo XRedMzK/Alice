@@ -24,7 +24,10 @@ PYTHONPATH=src HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
 ```
 
 Omit `--message` for the synchronous terminal loop. Commands: `/new`, `/clear`,
-`/person N`, `/source ID`, `/save PATH`, `/quit`. `--person 1` and
+`/person N`, `/source ID`, `/save NEW_NAME.json`, `/resources`, `/quit`.
+Transcript export requires a separate `--transcript-dir` and never replaces an
+existing file. See [candidate safety and recovery](PRE_DAY0_CANDIDATE.md).
+`--person 1` and
 `--source-id person:1` select another explicit source. `--restore-sessions PATH`
 loads a validated transcript/identity snapshot; `--session ID` then selects an
 existing session. Omitting it creates a new isolated session. Session save files
@@ -32,8 +35,10 @@ contain transcripts; keep them outside published source history.
 
 CPU mode is explicit `--device cpu --dtype float32`. It is supported by the
 loader but the real-model run reported below used CUDA/BF16. There is no silent
-device fallback. Stage 1 defaults to 256 input tokens and 16 output tokens;
-the generation cap is 64. Context eviction drops whole old messages, preserving
+device fallback. This candidate defaults to a 256-token total budget and 32
+output tokens without memory (16 in the default question-only memory profile);
+the generation cap is 64. The output budget is reserved before history selection.
+Context eviction drops whole old messages, preserving
 their source headers; an oversized current message fails without committing it.
 
 Loading uses native text-only `Qwen3_5ForCausalLM`, local files only, no remote
@@ -50,7 +55,7 @@ stable IDs supplied by the caller. The runtime does not infer real-world
 identity from text. IDs accompany messages and reach `BridgeContext.source_ids`
 in the order of selected context messages. Generated text remains Agent content,
 even when Base prints another speaker label; text cannot register a participant.
-Save/restore retains the registry and sessions atomically. These transcripts are
+Create-only save/validated restore retain the registry and bounded sessions. These transcripts are
 ordinary support state, not independent acquired knowledge.
 
 `runtime.bridge.attach(callable)` enables a candidate intervention at input

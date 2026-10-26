@@ -60,6 +60,13 @@ jobs:
           tests/test_payload_bridge_reconstruction.py
           tests/test_transcript_export_security.py
           tests/test_generation_boundary.py
+          tests/test_memory_payload_context.py
+          tests/test_memory_backup.py
+          tests/test_memory_restart_state.py
+          tests/test_runtime_recovery_cli.py
+          tests/test_runtime_session_limits.py
+          tests/test_confirmation_session_incarnation.py
+          tests/test_context_exchange_boundary.py
       - name: Install the runtime wheel and check its public entry point
         run: |
           python -m pip install --no-index --no-deps --no-build-isolation .

@@ -1,5 +1,14 @@
 # Alice Public v0 status
 
+**Candidate branch, 26 October 2026: NOT READY.** The separate PRE-DAY0 draft
+adds protected transcript export, turn stopping, restart-required, paired
+backup/restore and bounded disposable history. Real Qwen still exhibits ordinary
+topic and combined-context interference. The question-only profile remains the
+default; conversation memory is explicit experimental code. See the
+[candidate report and personal review procedure](docs/PRE_DAY0_CANDIDATE.md).
+These branch changes are not merged public-main capabilities or Day0 acceptance.
+The publication record below describes the unchanged `faa03d3` baseline.
+
 26 October 2026. **Public source integration is not Day0 acceptance.** No
 canonical working instance is appointed by this release.
 
