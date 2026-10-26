@@ -51,7 +51,7 @@ def _leaf(name):
 
 
 def _read_file(directory_fd, name, limit):
-    descriptor = os.open(_leaf(name), os.O_RDONLY | _NOFOLLOW, dir_fd=directory_fd)
+    descriptor = os.open(_leaf(name), os.O_RDONLY | os.O_NONBLOCK | _NOFOLLOW, dir_fd=directory_fd)
     try:
         info = os.fstat(descriptor)
         if not stat.S_ISREG(info.st_mode) or info.st_size > limit:
@@ -302,7 +302,7 @@ def create_memory_backup(state_path, bridge_path, destination, *, expected_bridg
     root_fd = lock_fd = None
     try:
         root_fd = open_directory_fd(state_path)
-        lock_fd = os.open(".alice-memory.lock", os.O_RDONLY | _NOFOLLOW, dir_fd=root_fd)
+        lock_fd = os.open(".alice-memory.lock", os.O_RDONLY | os.O_NONBLOCK | _NOFOLLOW, dir_fd=root_fd)
         if not stat.S_ISREG(os.fstat(lock_fd).st_mode):
             raise MemoryBackupError("Memory lock must be a regular file")
         try:

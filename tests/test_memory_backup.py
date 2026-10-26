@@ -297,3 +297,32 @@ def test_unsupported_mount_is_refused_before_any_destination_is_created(tmp_path
             app.backup(tmp_path / "snapshot")
         assert not (tmp_path / "snapshot").exists()
         assert tree_bytes(state_path) == before
+
+
+@pytest.mark.parametrize("command", ["create", "restore"])
+def test_offline_cli_refuses_fifo_input_without_waiting_for_a_writer(tmp_path, command):
+    source, bridge, output = (tmp_path / name for name in ("source", "bridge", "not-created"))
+    source.mkdir()
+    bridge.mkdir()
+    arguments = [sys.executable, "-B", "-m", "alice_runtime.memory_backup", command,
+                 "--output", str(output), "--expected-bridge-digest", "0" * 64]
+    if command == "create":
+        fifo = source / ".alice-memory.lock"
+        os.mkfifo(fifo)
+        arguments.extend(["--memory-state", str(source), "--bridge", str(bridge)])
+    else:
+        fifo = source / "backup.json"
+        os.mkfifo(fifo)
+        (source / "memory").mkdir()
+        (source / "bridge").mkdir()
+        arguments.extend(["--backup", str(source)])
+    identity = fifo.stat().st_dev, fifo.stat().st_ino, fifo.stat().st_mode
+    result = subprocess.run(arguments, capture_output=True, text=True, timeout=8,
+                            env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1",
+                                 "PYTHONPATH": str(Path(__file__).parents[1] / "src"),
+                                 "OMP_NUM_THREADS": "2", "MKL_NUM_THREADS": "2"})
+    assert result.returncode == 1 and result.stdout == ""
+    error = json.loads(result.stderr.strip().splitlines()[-1])
+    assert error["error_code"] == "memory_backup_failed" and "regular file" in error["error"]
+    assert not output.exists()
+    assert (fifo.stat().st_dev, fifo.stat().st_ino, fifo.stat().st_mode) == identity

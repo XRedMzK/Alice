@@ -19,6 +19,14 @@ The published question-only memory profile remains the CLI/API default.
 `--memory-context conversation` is opt-in diagnostic code with known failures;
 it must not be presented as accepted context+memory integration.
 
+Source checkpoint `2bc4551` passed the exact 409-test CPU profile in an isolated
+checkout (37.88 s), including the 269 published tests. A normal offline,
+noneditable installation outside the checkout, with `PYTHONPATH` removed,
+passed the five-process published real-Qwen memory regression in 43.52 s.
+Existing dependencies and the public-recipe Bridge were reused. The following
+backup FIFO hardening adds two refusal tests; it does not alter the neural path.
+Neither the CPU count nor the preserved memory regression makes P2/P3 pass.
+
 ## Transcript export contract
 
 Start with a separate `--transcript-dir /path/to/transcripts`. Without it,
@@ -159,6 +167,18 @@ Bundles contain neither transcript nor Qwen weights. Partial failed copies are
 left for inspection and are not acknowledged as valid backups. Keep the trusted
 Bridge digest from an independently checked checkpoint/recipe, not from an
 untrusted bundle. The same Linux/filesystem restrictions as export apply.
+Nonblocking input opens reject FIFOs before waiting for a writer; create/restore
+CLI timeout tests verify refusal without a success receipt or destination.
+
+Measured recovery: offline create plus two fresh pair restores completed in
+3.81 s. Three fresh frozen-Qwen processes (23.40 s total) returned corrected
+`dragon`, retained `museum`, source `person:1` value `helmet`; clear OFF/EMPTY
+omitted `dragon`, ON returned it, and a restored before-correction pair returned
+`window` with the same Bridge. All checkpoint hashes stayed unchanged. This used
+the explicit legacy question profile, without teaching-transcript restoration.
+The external reporter failed after its behavior assertions while aggregating a
+nested resources dictionary; the raw failure is retained. A corrected offline
+assessment rechecked the saved events and hashes without repeating GPU work.
 
 ## Bounded resource evidence and retained limits
 
@@ -178,6 +198,10 @@ not a sampled current-memory trace. M and Bridge files stayed byte-identical.
 This is a short stability check, not evidence of multi-hour reliability or
 semantic correctness. One-token values, supported RU/EN object-label grammar,
 bounded capacity/interference and donor/Bridge compatibility limits remain.
+
+Session confirmation is also bound to a RAM-only incarnation of the session:
+evicting a closed session and reusing its textual ID cannot revive an old pending
+proposal or confirmation token. This adds no fields to the v1 transcript or M.
 
 ## Personal review sequence
 
