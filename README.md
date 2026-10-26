@@ -3,7 +3,8 @@
 Alice is an engineering project for a functioning modular cognitive system,
 informed by research and existing technical solutions. Its direction is an independently owned, changeable
 cognitive state and acquired experience that can survive replacement of a language
-backbone. **The cognitive runtime and its new abilities remain planned.**
+backbone. **Stage 1 technical Qwen runtime is implemented; independent neural
+memory and its learned cognitive abilities remain planned.**
 
 > Use science to design the architecture; use engineering evidence to determine
 > whether Alice works.
@@ -20,18 +21,29 @@ each passed 15 gates within their original bounded scope.
 The approved next direction uses a **frozen, replaceable Qwen3.5-2B-Base** for
 language processing and response formation, a **planned independent plastic
 neural memory**, and a **planned replaceable trainable Memory Bridge**. ComfyUI
-is the chosen future external visual graph/UI/API layer. These integrations are
-**not implemented in this repository**. See [ARCHITECTURE.md](ARCHITECTURE.md) for
+is the chosen future external visual graph/UI/API layer. Local frozen text
+generation and a technical embedding connection exist in `src/alice_runtime`;
+Neural Memory, a trained Bridge and ComfyUI remain **unimplemented**. See [ARCHITECTURE.md](ARCHITECTURE.md) for
 the precise boundaries and [ROADMAP.md](ROADMAP.md) for proposed functional work.
 
 [Engineering First Policy v2](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) is active:
 new cognitive functions must improve useful runtime behavior in matched MODULE
 OFF / MODULE ON checks. There is no mandatory M1-style scientific qualification
 or separate network for each historical M0–M13 function. The replacement roadmap
-awaits owner approval; this PR starts no training, downloads or implementation.
+was approved at PR #1 commit `9c29e08` and merged as `641d40e`. Stage 1 uses
+existing local model assets without training or new model downloads.
 Start with [CODEX.md](CODEX.md), the [engineering contract](ENGINEERING_MODULE_CONTRACT.md)
 and [validation rules](ENGINEERING_VALIDATION.md). [Policy scope](docs/POLICY_SCOPE.md)
 separates active rules from the unchanged Foundation research records.
+
+## Minimal local Qwen runtime
+
+See [the runtime guide](docs/TECHNICAL_RUNTIME.md) for CLI/API usage, the typed
+Bridge boundary, environment requirements and the short opt-in smoke command.
+It runs offline from an existing local snapshot; model weights are not included.
+Session transcripts and explicit participant IDs are support state, not Neural
+Memory. [Next memory/Bridge options](docs/NEURAL_MEMORY_BRIDGE_OPTIONS.md) remain
+candidates, not implemented mechanisms.
 
 ## Basic local check
 

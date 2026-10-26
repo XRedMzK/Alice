@@ -1,0 +1,7 @@
+# Optional runtime additions to an already installed, matching Torch environment.
+# Tested without installation on the existing torch==2.13.0+cu130 environment.
+# This is a direct-dependency specification, not a portable resolved lock.
+transformers==5.15.0
+tokenizers==0.22.2
+safetensors==0.8.0
+accelerate==1.14.0

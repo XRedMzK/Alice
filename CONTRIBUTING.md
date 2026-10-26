@@ -16,8 +16,9 @@ MODULE ON checks on useful real behavior; changed output alone is insufficient.
 Reuse existing solutions before introducing another model.
 
 The [owner's policy](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) is approved; the
-replacement [roadmap](ROADMAP.md) is proposed. Await the owner's roadmap approval
-before starting the proposed runtime, memory, Bridge or ComfyUI implementation.
+replacement [roadmap](ROADMAP.md) was approved at PR #1 commit `9c29e08`. Stage 1
+technical runtime is authorized; its source and affected tests are included.
+Memory/Bridge algorithm selection and training are separate future work.
 The unchanged [Foundation contracts](docs/POLICY_SCOPE.md) are historical scoped
 records, not mandatory qualification programmes for all new functions.
 

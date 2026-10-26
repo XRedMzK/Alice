@@ -20,6 +20,7 @@ any installed distribution. Source-license references are:
 | jsonschema | MIT | [Official source COPYING](https://github.com/python-jsonschema/jsonschema/blob/v4.26.0/COPYING) |
 | pytest (tests) | MIT | [Official source LICENSE](https://github.com/pytest-dev/pytest/blob/9.1.1/LICENSE) |
 | nvidia-ml-py (optional GPU) | BSD | [Upstream package](https://pypi.org/project/nvidia-ml-py/13.610.43/) |
+| Transformers / Tokenizers / Accelerate (optional local runtime) | Apache-2.0 | [Transformers](https://github.com/huggingface/transformers/blob/main/LICENSE), [Tokenizers](https://github.com/huggingface/tokenizers/blob/main/LICENSE), [Accelerate](https://github.com/huggingface/accelerate/blob/main/LICENSE) |
 
 NumPy, PyTorch and CUDA distributions can bundle other code and NVIDIA software
 under additional terms. Preserve all notices shipped with distributions when
@@ -27,11 +28,14 @@ redistributing them. This repo distributes only dependency specifications, not
 those binaries. See [DEPENDENCIES.md](docs/DEPENDENCIES.md) for tested versions and
 environment limits.
 
-The future language/response donor is `Qwen/Qwen3.5-2B-Base`; the identified
+The local technical runtime's language/response donor is `Qwen/Qwen3.5-2B-Base`; the identified
 historical model revision is `b1485b2fa6dfa1287294f269f5fb618e03d52d7c`.
 Its [upstream Apache-2.0 license](https://huggingface.co/Qwen/Qwen3.5-2B-Base/blob/b1485b2fa6dfa1287294f269f5fb618e03d52d7c/LICENSE)
-governs separately obtained assets. No Qwen/tokenizer assets or Alice language
-runtime are included; no rights over its upstream pretraining data are claimed.
+governs separately obtained assets. No Qwen/tokenizer assets are included; the
+runtime uses the installed Transformers API without vendoring it. Its small
+local-only loader reuses project-owned loading primitives from the prior Alice
+workspace without depending on archived M1. No rights over upstream pretraining
+data are claimed.
 
 ComfyUI is a selected future external application, not a vendored or linked
 implementation in this tree. Any future custom nodes, dependency distribution
