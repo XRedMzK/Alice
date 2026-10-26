@@ -65,6 +65,7 @@ def _interactive(runtime, store, session, args):
         print(_COMMANDS, flush=True)
         if memory_enabled:
             print("/remember writes and saves one structured fact; ordinary messages are not automatically learned.", flush=True)
+            print("You may also say 'Remember that the label of object atlas-0 is window.' or 'Запомни: метка объекта atlas-0 — window.'; confirmation is required.", flush=True)
             print("The memory profile answers the current question without conversation history.", flush=True)
     while True:
         try:
@@ -77,10 +78,11 @@ def _interactive(runtime, store, session, args):
                 if command == "/quit" and len(parts) == 1:
                     break
                 if command == "/new" and len(parts) == 1:
+                    runtime.clear_pending_memory(session)
                     session = store.new_session()
                     _emit("session", {"session_id": session}, args.json, f"Session: {session}")
                 elif command == "/clear" and len(parts) == 1:
-                    store.clear_session(session)
+                    runtime.clear_session(session)
                     _emit("session_cleared", {"session_id": session}, args.json, "Session cleared.")
                 elif command == "/person" and len(parts) == 2:
                     participant = store.add_person(int(parts[1]))
@@ -88,6 +90,7 @@ def _interactive(runtime, store, session, args):
                 elif command == "/source" and len(parts) == 2:
                     if parts[1] not in store.participants:
                         raise SessionError("Unknown source_id")
+                    runtime.clear_pending_memory(session)
                     args.source_id = parts[1]
                     _emit("source", {"source_id": args.source_id}, args.json, f"Speaker: {args.source_id}")
                 elif command == "/knowledge-source" and len(parts) == 2:

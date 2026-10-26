@@ -96,7 +96,11 @@ deletion of historical M1/Foundation evidence or unknown user data.
 
 This source-only continuation is prepared from Stage 1 `626b6f8` and accepted
 local runtime/memory integration `4cecf57`, under the owner's subsequent explicit
-authorization. It contains production dependency closure, asset-free tests and
+authorization. The subsequent bounded dialogue continuation reuses verified
+production code `87d7524`: explicit RU/EN object-label intent, transient
+speaker/session-bound confirmation and answer-blind RU query adaptation. It is
+deterministic support code, not a new neural language architecture or free NLU.
+It contains production dependency closure, asset-free tests and
 portable usage documentation only. Stage 1 PR #2 must be reviewed by the owner;
 preparation is not an approval, publication or merge. No remote mutation or model
 fitting is authorized by this package. Preserve separate Bridge/M lifecycle,
