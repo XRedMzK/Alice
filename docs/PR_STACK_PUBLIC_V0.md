@@ -37,6 +37,11 @@ Review Stage 1 independently first. If its reviewed source changes, update and
 recheck the dependent layers before merging them. Merge in order 1 → 2 → 3 and
 retarget the next PR only after its dependency is merged. Preserve the original
 accepted references and prepare continuation commits rather than rewriting them.
+Use merge commits to preserve the reviewed ancestry; do not force-push or rewrite
+accepted references. If the owner instead chooses a squash merge, prepare the
+dependent continuation against the actual merged result and repeat its affected
+checks before retargeting or merging it. The previous base is not automatically
+equivalent to a new squash commit. This choice requires an explicit owner decision.
 
 Each layer contains production source, necessary tests and portable documentation.
 Model/Bridge weights, acquired M, private conversations, machine-specific paths,
@@ -50,3 +55,6 @@ opt-in [public smoke](../tools/public_memory_smoke.py) separately exercises the
 installed CLI with local Qwen and Bridge assets. A CPU test count is not a claim
 of real-model neural recall. See [installation and limits](PUBLIC_V0_INSTALL.md)
 for the exact external-asset contract and reproducible command.
+
+[Observed public-v0 validation and its scope](PUBLIC_V0_VALIDATION.md) records
+the separate asset-free and installed real-model checks.

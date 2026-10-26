@@ -7,6 +7,11 @@ backbone. **This branch adds bounded persistent parametric Neural Memory to
 the Stage 1 runtime.** Explicit supported facts survive process restart through
 an independently saved neural state. [Run and limits](docs/NEURAL_MEMORY_RUNTIME.md).
 
+Start with [package installation and real-model reproduction](docs/PUBLIC_V0_INSTALL.md),
+[observed validation and limits](docs/PUBLIC_V0_VALIDATION.md), and the
+[three-layer PR review and merge order](docs/PR_STACK_PUBLIC_V0.md). Model and
+sealed Bridge assets are supplied separately; the source contains no weights.
+
 > Use science to design the architecture; use engineering evidence to determine
 > whether Alice works.
 
@@ -73,9 +78,10 @@ CUDA or use M1 data. The rest of the original CPU suite is supplied for inspecti
 and separate deliberate reproduction; several of its fixtures **do train small
 synthetic modules**. It is not part of the basic check or default CI job.
 
-The source checkout is the supported layout; schemas are resolved relative to
-that layout. No standalone wheel portability, Windows runtime qualification or
-fresh full Foundation qualification is claimed. See [the Foundation guide](docs/FOUNDATION.md)
+The Foundation checks use the source checkout; their schemas are resolved
+relative to that layout. The installable wheel exposes the runtime and memory
+namespaces, rather than a standalone Foundation resource API. Windows runtime
+qualification and a fresh full Foundation qualification are not claimed. See [the Foundation guide](docs/FOUNDATION.md)
 and [the small protocol](experiments/foundation-smoke/README.md).
 
 ## M1 research is separate
