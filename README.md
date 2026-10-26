@@ -11,13 +11,18 @@ Start with [package installation and real-model reproduction](docs/PUBLIC_V0_INS
 [observed validation and limits](docs/PUBLIC_V0_VALIDATION.md), and the
 [three-layer PR review and merge order](docs/PR_STACK_PUBLIC_V0.md). Model and
 sealed Bridge assets are supplied separately; the source contains no weights.
+The recorded Bridge has a [CPU reconstruction recipe](docs/PAYLOAD_BRIDGE_RECONSTRUCTION.md)
+with strict identity and CPU/MKL limits. Read [STATUS](STATUS.md) and the
+[PRE-DAY0 gap report](docs/PRE_DAY0_V0_GAP_REPORT_RU.md) before a personal trial:
+ordinary dialogue, current context and state-export protection still have
+concrete gaps. Public v0 is not Day0 acceptance or a canonical instance.
 
 > Use science to design the architecture; use engineering evidence to determine
 > whether Alice works.
 
 ## What is here
 
-The working implementation is the small **NMCM v2 Foundation**: versioned neural
+The historical infrastructure is the small **NMCM v2 Foundation**: versioned neural
 module contracts, a registry and graph runner, independent state/checkpoints,
 compatibility checks, telemetry and a separate GPU control plane. The synthetic
 A1/A2/A3/B/C modules exercise those boundaries; they are not a neural memory or an

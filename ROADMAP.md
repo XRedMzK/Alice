@@ -1,39 +1,46 @@
-# Alice functional roadmap — proposal
+# Alice functional roadmap — Public v0 / PRE-DAY0
 
-Prepared local continuation: structured acquisition and restart recall from
-independent parameter memory are integrated in ordinary AliceRuntime/CLI.
-No new model, large training run, lexicon extension or new architecture is part
-of this publication package. Scope remains one-token facts, explicit sources and
-three English question forms. A bounded RU/EN message adapter now proposes one
-object label for confirmation by its actual source; only confirmed facts enter M.
-It adds neither training nor a new memory architecture. [Usage](docs/NEURAL_MEMORY_RUNTIME.md). Earlier
-unimplemented-memory statements below describe the original roadmap snapshot.
+26 October 2026. Engineering First v2 and the functional roadmap were approved
+at PR #1 `9c29e08`, merged as `641d40e`. The owner authorized sequential public
+integration of Stage 1, Memory and Dialogue on 26 October 2026.
 
-25 October 2026. **OWNER-APPROVED at PR #1 commit `9c29e08`.**
-[Engineering First Policy v2](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) and the overall
-functional architecture are owner-approved. PR #1 was merged as `641d40e`.
-Stage 1 technical runtime is authorized and implemented locally; see
-[the runtime guide](docs/TECHNICAL_RUNTIME.md). This stage performs no training,
-new model downloads or Neural Memory/learned Bridge implementation.
+## Delivered in the bounded Public v0 source
 
-Progress answers: **What useful task can Alice now perform that it could not
-perform before?** Cognitive additions need relevant real-runtime MODULE OFF /
-MODULE ON evidence and acceptable regressions, not merely changed output.
+- Stage 1 frozen local Qwen runtime, participant/source IDs, sessions and typed
+  embedding connection: [PR #2](https://github.com/XRedMzK/Alice/pull/2).
+- Independent persistent Neural Memory and compatible sealed embedding Bridge:
+  [PR #3](https://github.com/XRedMzK/Alice/pull/3). Only M changes on acquisition.
+- Explicit supported RU/EN object-label intent, exact proposal confirmation,
+  restart/correction recall and public installation/reproduction instructions:
+  [PR #4](https://github.com/XRedMzK/Alice/pull/4).
 
-## Starting point
+This is one-token memory over literal IDs and explicit query forms, not an
+unrestricted assistant. External Qwen and the exact compatible Bridge remain
+required; the [CPU reconstruction recipe](docs/PAYLOAD_BRIDGE_RECONSTRUCTION.md)
+is verified only on its recorded profile and fails closed on a different digest.
+See [STATUS](STATUS.md), [architecture](ARCHITECTURE.md) and
+[observed validation](docs/PUBLIC_V0_VALIDATION.md).
 
-Foundation CPU and target-GPU acceptance remain historical PASS in their original
-scope. Preserve source, interfaces, schemas, tests and evidence. The public tree
-now contains Foundation and the Stage 1 local frozen-Qwen technical runtime.
-Plastic neural memory, a trained Memory Bridge and ComfyUI are not implemented.
-Stage 1 technical checks pass; no cognitive memory milestone below is complete.
-Synthetic recurrent state and session transcripts are not acquired episodic memory.
+## Next work: PRE-DAY0 gaps
 
-M1 is RESEARCH ARCHIVED / NOT_FROZEN in its
-[separate project](https://github.com/XRedMzK/M1-Event-Understanding). Its
-qualification is not an Alice prerequisite and is not resumed here. Memory and
-Bridge algorithms, intervention site, tensor contracts, capacity, learning
-objective and update protocol remain open.
+Follow the [PRE-DAY0 v0 GAP REPORT](docs/PRE_DAY0_V0_GAP_REPORT_RU.md): ordinary
+dialogue quality, current-context use, memory/error recovery, long interaction,
+state protection, and launch/shutdown. Current-question-only memory mode and
+unsafe transcript export are concrete limits. Do not start new cognitive modules
+or training before addressing the owner's decision on these gaps.
+
+Public v0 is not Day0 acceptance. Day0 v0 and a canonical working instance need
+separate owner confirmation. The sequence is Day0 -> close Alice V1 -> later
+cortical Alice v2 systems, without skipping V1 closure.
+
+## Historical approved functional crosswalk
+
+The 25 October table/sequence below preserves the approved functional reasoning,
+not a queue of networks or a current completion checklist. Earlier unselected
+mechanism/future-step wording belongs to that snapshot. Current implementation
+and remaining gaps are stated above and in STATUS. Foundation/M1 contracts,
+results and source remain unchanged. M1 stays RESEARCH ARCHIVED / NOT_FROZEN;
+its qualification is not an Alice prerequisite.
 
 ## Functional priorities
 

@@ -1,5 +1,26 @@
 # Public v0 review and merge order
 
+## Publication authority and current references
+
+On 26 October 2026 the owner approved publishing and sequentially merging this
+stack after each dependency, current-CI and blocking-review check. Stage 1
+[PR #2](https://github.com/XRedMzK/Alice/pull/2) was separately merged as
+`74ae50a`; Memory [PR #3](https://github.com/XRedMzK/Alice/pull/3) as `a5e9d46`.
+Dialogue is published in [PR #4](https://github.com/XRedMzK/Alice/pull/4).
+Those PR pages contain authoritative current CI/merge receipts.
+
+The approved `626b6f8`, `21cb07e` and `3abcc5d` histories remain preserved.
+Publication adds a test-only FP32 oracle correction, a no-fitting reconstruction
+route for the existing external Bridge, and actual-status/PRE-DAY0 documents.
+No weights, acquired state or new architecture are introduced. See [STATUS](../STATUS.md)
+and [PRE-DAY0](PRE_DAY0_V0_GAP_REPORT_RU.md); publication does not accept Day0.
+
+## Historical preparation snapshot
+
+The remaining text records the local prepublication handoff. Its statements
+about unpublished branches and absent remote CI are historical, superseded by
+the explicit owner authorization and PR references above.
+
 The source release is prepared as a dependency stack. No merge is automatic.
 The owner reviews each layer against its stated base; acceptance of local
 behavior is not acceptance of a public PR. Historical prototype and checkpoint

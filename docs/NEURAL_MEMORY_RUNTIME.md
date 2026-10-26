@@ -2,8 +2,9 @@
 
 This source-only integration reuses the bounded functional memory prototype
 `244957a`, runtime integration `4cecf57` and verified bounded dialogue code
-`87d7524`. It is prepared separately from
-Stage 1 PR #2, whose review/merge decision remains with the owner. No model,
+`87d7524`. Stage 1 PR #2 and Memory PR #3 were separately merged under the
+owner's 26 October publication authorization; Dialogue follows in PR #4.
+See [actual status and remaining gaps](../STATUS.md). No model,
 Bridge checkpoint, experience state, generated run log or calibration tool is
 distributed in this source package.
 

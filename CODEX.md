@@ -1,3 +1,16 @@
+<!-- CURRENT: PUBLIC_V0_PRE_DAY0_20261026; older task scopes below are historical. -->
+
+Current owner authority: sequential publication/merge of Stage1 PR2, Memory PR3,
+and Dialogue PR4 after current CI and dependency/review checks, followed by the
+PRE-DAY0 GAP REPORT. See STATUS.md and docs/PRE_DAY0_V0_GAP_REPORT_RU.md.
+No new training or architecture is authorized for publication. No new cognitive
+module before this gap analysis; Day0/canonical instance need separate owner
+confirmation. Day0 -> close V1 -> cortical Alice v2. Keep exact source, external
+asset and capacity/context limitations explicit. The prior records below do
+not restart older work or unused fitting budgets.
+
+---
+
 # Alice working policy — Engineering First v2
 
 Authority: owner decision of 25 October 2026. This is the active policy for new

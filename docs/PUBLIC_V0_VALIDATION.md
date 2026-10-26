@@ -1,5 +1,33 @@
 # Public v0 validation and limits
 
+## Publication reproduction and PRE-DAY0 observation
+
+The public GitHub source at `880c59c4d7d4996e2203d8c4aa1c1ba381899547` was
+freshly cloned and installed normally into a new virtual environment. It ran
+outside checkout with `PYTHONPATH` removed; Alice imports came from the new
+installation. Compatible dependencies and Qwen assets were reused locally;
+independent network dependency resolution was not claimed.
+
+The existing sealed Bridge was reconstructed from the public utility, fixed
+constructor and recorded scalar, without the old checkpoint or fitting. Exact
+state identity was verified on the recorded native CPU profile. The resulting
+Bridge supported the same five-process installed real-Qwen check in **46.69 s**:
+confirmed RU/EN acquisition, restart, source/correction/retention, OFF/EMPTY/ON,
+same-Bridge M swap and unrelated controls. This closes the concrete local
+reproduction route from public source plus supplied Qwen. Different CPU/MKL
+dispatch may fail strict reconstruction; no universal external-asset portability
+or hosted checkpoint fallback is claimed. See [the recipe](PAYLOAD_BRIDGE_RECONSTRUCTION.md).
+
+Two short additional sessions found Base role continuation/repetition without
+memory and loss of the preceding call-sign context in memory mode. They are
+negative product observations, not training data or a scientific benchmark.
+[PRE-DAY0 GAP REPORT](PRE_DAY0_V0_GAP_REPORT_RU.md) records the concrete remaining
+issues and **NOT READY** decision. No new architecture, Qwen/Bridge fitting or
+canonical instance was introduced. The evidence below retains the earlier
+prepublication checks with their own source identities and timings.
+
+## Earlier prepared-source evidence
+
 On 26 October 2026, the source at
 `bb07f40d83f38a45ac4be87847a63766e91fdff4` was exported from Git, installed as an
 ordinary wheel into a fresh virtual environment and exercised outside the
