@@ -1,8 +1,29 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "alice-foundation"
 version = "0.1.0"
 description = "Clean Foundation source and research direction for Alice"
 requires-python = ">=3.12,<3.13"
+
+[project.optional-dependencies]
+runtime = [
+  "transformers==5.15.0",
+  "tokenizers==0.22.2",
+  "safetensors==0.8.0",
+  "accelerate==1.14.0",
+]
+
+[project.scripts]
+alice = "alice_runtime.__main__:main"
+
+# The historical Foundation/schema checks remain source-layout consumers.
+# This first installable wheel exposes only the runtime and memory namespaces.
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["alice_runtime*", "alice_memory*"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
