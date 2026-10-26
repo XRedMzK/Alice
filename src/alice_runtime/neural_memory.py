@@ -21,7 +21,7 @@ from alice_memory.bridge import BridgeStateError
 from alice_memory.checkpoints import restore_bridge
 from alice_memory.matrix import MemoryStateError
 from alice_memory.payload_bridge import PayloadEmbeddingBridge
-from alice_memory.payload_matrix import ParametricPayloadMemory
+from alice_memory.payload_matrix import MemoryCommitUncertainError, ParametricPayloadMemory
 from alice_memory.payload_runtime import PayloadMemoryRuntime
 from alice_memory.runtime import Fact, Question
 
@@ -30,8 +30,9 @@ class NeuralMemorySession:
     """One writable memory directory, one Qwen instance, and an immutable Bridge.
 
     The process lock lasts until close. A successful remember acknowledgement
-    follows atomic publication of M; a failed publication restores the previous
-    in-memory parameters. Bridge files are read only and have another lifecycle.
+    follows durable atomic publication of M. A failure before the manifest switch
+    restores RAM; an uncertain switch closes this session and requires reopening
+    the committed checkpoint. Bridge files have another, read-only lifecycle.
     """
 
     LOCK_FILE = ".alice-memory.lock"
@@ -79,9 +80,11 @@ class NeuralMemorySession:
                 fcntl.flock(self._lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             except BlockingIOError as exc:
                 raise MemoryStateError("Memory directory is already open in another runtime") from exc
-            # Revalidate after taking ownership; never initialize over an invalid
-            # or partly present checkpoint.
+            # Revalidate and retire only known uncommitted artifacts after taking
+            # ownership. Never initialize over unknown or corrupt durable data.
             self._validate_directory()
+            ParametricPayloadMemory.recover_uncommitted(
+                self.state_path, latent_basis_id=self.bridge.basis_id)
             manifest = self.state_path / "memory.json"
             if manifest.exists():
                 self.memory = ParametricPayloadMemory.load(
@@ -106,14 +109,37 @@ class NeuralMemorySession:
         if any(p.is_symlink() or not p.is_file() for p in entries):
             raise MemoryStateError("Memory directory must contain regular local files only")
         manifest = self.state_path / "memory.json"
-        if not manifest.exists() and any(p.name != self.LOCK_FILE for p in entries):
+        if not manifest.exists() and any(
+                p.name != self.LOCK_FILE and not ParametricPayloadMemory.is_uncommitted_name(p.name)
+                for p in entries):
             raise MemoryStateError("Nonempty directory has no memory manifest; refusing to reset it")
 
     def _assert_open(self):
         if self._closed or self._lock_fd is None:
             raise MemoryStateError("Neural Memory session is closed")
 
+    def _manifest_bytes(self):
+        path = self.state_path / "memory.json"
+        return path.read_bytes() if path.exists() else None
+
+    def _check_failed_commit(self, before_manifest, error):
+        """An exception after publication is never a reason to restore old RAM."""
+        uncertain = isinstance(error, MemoryCommitUncertainError)
+        if not uncertain:
+            try:
+                uncertain = self._manifest_bytes() != before_manifest
+            except BaseException:
+                uncertain = True
+        if uncertain:
+            self.close()
+            if isinstance(error, MemoryCommitUncertainError):
+                raise error
+            raise MemoryCommitUncertainError(
+                "Memory publication may have committed; reopen the checkpoint before retrying"
+            ) from error
+
     def _publish(self):
+        before_manifest = self._manifest_bytes()
         previous = None
         if self._persisted:
             metadata = json.loads((self.state_path / "memory.json").read_text())
@@ -121,37 +147,68 @@ class NeuralMemorySession:
             # atomic switch. Only the formerly referenced, same-directory neural
             # snapshot may subsequently be retired; unknown files are untouched.
             previous = metadata.get("tensor_file")
-        manifest = self.memory.save(self.state_path)
-        self._persisted = True
-        if (isinstance(previous, str)
-                and re.fullmatch(r"memory-payload-[0-9a-f]{32}\.safetensors", previous)
-                and previous != manifest["tensor_file"]):
-            try:
-                (self.state_path / previous).unlink(missing_ok=True)
-            except OSError as exc:
-                # Publication already succeeded. A duplicate snapshot is a
-                # recoverable cleanup warning, never a false failed-write ACK.
-                self._cleanup_warning = str(exc)
-        return manifest
+        try:
+            manifest = self.memory.save(self.state_path)
+            self._persisted = True
+            if (isinstance(previous, str)
+                    and re.fullmatch(r"memory-payload-[0-9a-f]{32}\.safetensors", previous)
+                    and previous != manifest["tensor_file"]):
+                try:
+                    (self.state_path / previous).unlink(missing_ok=True)
+                except OSError as exc:
+                    # Publication already succeeded. A duplicate snapshot is a
+                    # recoverable cleanup warning, never a false failed-write ACK.
+                    self._cleanup_warning = str(exc)
+            return manifest
+        except BaseException as exc:
+            self._check_failed_commit(before_manifest, exc)
+            raise
 
     def remember(self, source_id: str, cue: str, value: str) -> dict:
         """Acquire an explicit one-token value, then durably acknowledge M."""
         with self._lock:
             self._assert_open()
             before = self.memory.matrix.detach().clone()
+            before_manifest = self._manifest_bytes()
             bridge_digest = self.bridge.parameter_digest()
             try:
                 receipt = self.engine.acquire(Fact(source_id, cue, value))
                 self._publish()
-            except BaseException:
+                return {**receipt, "saved": True,
+                        "persistent_m_changed": receipt["after"] != receipt["before"],
+                        "memory_digest": self.memory.content_digest(),
+                        "bridge_digest": bridge_digest, "bridge_unchanged": True,
+                        "qwen_frozen": True, "state_path": str(self.state_path)}
+            except BaseException as exc:
+                self._check_failed_commit(before_manifest, exc)
                 with torch.no_grad():
                     self.memory.matrix.copy_(before)
                 raise
-            return {**receipt, "saved": True,
-                    "persistent_m_changed": receipt["after"] != receipt["before"],
-                    "memory_digest": self.memory.content_digest(),
-                    "bridge_digest": bridge_digest, "bridge_unchanged": True,
-                    "qwen_frozen": True, "state_path": str(self.state_path)}
+
+    def validate_fact(self, source_id: str, cue: str, value: str) -> None:
+        """Read-only admission before asking for consent; no experience write.
+
+        Use the actual frozen tokenizer/embedding boundary, not a word palette.
+        Only temporary tensors are created; no cue/value record is retained.
+        """
+        from alice_memory.query_normalization import normalize_memory_query
+
+        with self._lock, torch.no_grad():
+            self._assert_open()
+            self.bridge.assert_frozen()
+            self.engine.assert_qwen_frozen()
+            before = self.memory.content_digest()
+            self.memory.source_index(source_id)
+            self.engine._question_ids(normalize_memory_query(cue))
+            prefix = self.engine._question_ids(cue)
+            tail = self.engine._ids(f"\nQuestion: {cue}\nAnswer:")
+            if prefix.shape[1] + 1 + tail.shape[1] + 1 > self.engine.max_tokens:
+                raise MemoryStateError("Fact question exceeds the memory profile token budget")
+            self.bridge.value(self.engine._value_feature(value))
+            self.bridge.assert_frozen()
+            self.engine.assert_qwen_frozen()
+            if self.memory.content_digest() != before:
+                raise MemoryStateError("Fact validation unexpectedly changed memory")
 
     def respond(self, request: Question, mode: str = "on", max_new_tokens: int = 8) -> dict:
         with self._lock:
@@ -168,8 +225,13 @@ class NeuralMemorySession:
             self._assert_open()
             self.bridge.assert_frozen()
             self.engine.assert_qwen_frozen()
-            self._publish()
-            return {**self.status(), "saved": True}
+            before_manifest = self._manifest_bytes()
+            try:
+                self._publish()
+                return {**self.status(), "saved": True}
+            except BaseException as exc:
+                self._check_failed_commit(before_manifest, exc)
+                raise
 
     def status(self) -> dict:
         with self._lock:
@@ -188,11 +250,15 @@ class NeuralMemorySession:
 
     def close(self):
         with self._lock:
-            if self._lock_fd is not None:
-                fcntl.flock(self._lock_fd, fcntl.LOCK_UN)
-                os.close(self._lock_fd)
-                self._lock_fd = None
             self._closed = True
+            if self._lock_fd is not None:
+                try:
+                    fcntl.flock(self._lock_fd, fcntl.LOCK_UN)
+                finally:
+                    try:
+                        os.close(self._lock_fd)
+                    finally:
+                        self._lock_fd = None
 
     def __enter__(self):
         self._assert_open()

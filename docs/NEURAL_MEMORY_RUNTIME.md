@@ -8,8 +8,11 @@ distributed in this source package.
 
 ## Run with existing compatible assets
 
-Use CPython 3.12 on Linux and the existing optional runtime requirements.
-Configure these paths for your machine:
+Use CPython 3.12 on Linux and compatible runtime requirements. Install the source
+with `python -m pip install --no-deps --no-build-isolation .` after installing
+its dependencies; `alice --help` is available outside the checkout. The optional
+`runtime` dependency group installs model-loading dependencies. Configure these
+paths for your machine:
 
 ```bash
 export ALICE_PYTHON=/path/to/compatible/environment/bin/python
@@ -70,6 +73,17 @@ silently add a neural source plane.
 not memory. Acquisition is not appended to session history. EOF, Ctrl-C and
 `/quit` release the single-writer lock. Concurrent writers, bad checksums and
 overlapping state/Bridge/model directories fail explicitly.
+
+A successful save acknowledgement follows an atomically published manifest and
+synchronized parameter files and directory metadata. A pre-commit failure keeps
+the previously committed state. If publication was attempted but its durability
+cannot be established, no success is acknowledged: the memory session closes and
+must be reopened. Restore then accepts a complete committed snapshot or reports
+an explicit error; it does not continue from a stale in-memory copy. Known,
+owned staging remnants from a killed first write are recovered; unknown files
+or corrupt committed state are preserved and rejected. These semantics are
+checked with local Linux/POSIX fault injection and process termination, rather
+than a claim of hardware power-loss qualification.
 
 `--message TEXT` uses the same runtime in batch mode. `--json` emits JSONL
 events for interactive callers. The Python API exposes `attach_memory`,
