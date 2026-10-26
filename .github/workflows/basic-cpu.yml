@@ -40,7 +40,6 @@ jobs:
           tests/test_memory_affine_bridge.py
           tests/test_memory_bridge.py
           tests/test_memory_context.py
-          tests/test_memory_crash_safety.py
           tests/test_memory_lexical_bridge.py
           tests/test_memory_lexical_runtime.py
           tests/test_memory_matrix.py
@@ -54,11 +53,14 @@ jobs:
           tests/test_runtime_memory_cli.py
           tests/test_runtime_memory_integration.py
           tests/test_runtime_memory_store.py
+          tests/test_memory_crash_safety.py
           tests/test_fact_intent.py
           tests/test_dialogue_acquisition.py
           tests/test_confirmation_binding.py
-      - name: Install package and check console entry point outside the checkout
+      - name: Install the runtime wheel and check its public entry point
         run: |
           python -m pip install --no-index --no-deps --no-build-isolation .
-          cd "${RUNNER_TEMP}"
+          temporary_directory="$(mktemp -d)"
+          cd "$temporary_directory"
+          python -c "import alice_runtime; print(alice_runtime.__file__)"
           alice --help

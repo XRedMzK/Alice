@@ -69,6 +69,31 @@ This deliberately shares dependencies, not Alice source. A child virtual
 environment with `--system-site-packages` alone does not reliably inherit another
 virtual environment's packages. Keep the dependency environment available.
 The packaged entrypoint is `alice`; `python -m alice_runtime` remains supported.
+
+For API clients, `confirmation_required` returns an opaque
+`memory_info["confirmation_id"]` bound to that exact immutable fact, source and
+session. Pass it back as `respond(..., confirmation_id=...)` when confirming.
+The terminal CLI carries the last displayed identifier automatically; users still
+say ordinary `да`/`yes`. A stale confirmation cannot write a replacement fact:
+the runtime redisplays the current proposal and a new matching identifier.
+Serialized legacy API calls without an identifier retain their existing latest
+proposal semantics, with an entry-time snapshot that rejects a proposal changed
+while waiting for the runtime lock. Concurrent clients must echo the identifier
+of the proposal they actually displayed.
+
+Memory publication uses a synced immutable payload and an atomic, synced manifest
+switch. Before the switch, a save error restores RAM and leaves the prior
+committed state unchanged. If the switch may have occurred but durable completion
+was not confirmed, `MemoryCommitUncertainError` suppresses the success response
+and closes that memory session. Reopen the checkpoint before retrying: it may
+contain the complete old or complete new state. A missing acknowledgement is not
+proof that nothing committed. Recovery retires only recognized uncommitted files;
+unknown or corrupt committed state fails closed, without a silent reset.
+
+The tests exercise injected I/O failures and actual process SIGKILL boundaries.
+They are not physical power-loss tests or a guarantee for every filesystem.
+This first release targets Linux local filesystems supporting atomic rename,
+directory fsync and advisory process locks; network filesystems are unqualified.
 The old Foundation checks still run from the source checkout and resolve their
 existing repository resources there; this release does not claim a standalone
 Foundation wheel/resource API.
