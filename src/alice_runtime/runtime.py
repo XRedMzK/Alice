@@ -1,9 +1,12 @@
 """Bounded local generation with explicit sessions and an optional Bridge port."""
 
 from dataclasses import dataclass
+import hashlib
+import json
 import resource
 import threading
 import time
+from uuid import uuid4
 
 import torch
 
@@ -38,6 +41,18 @@ class PendingMemoryFact:
     value: str
     object_id: str
     language: str
+    confirmation_id: str
+
+    @classmethod
+    def create(cls, session_id, source_id, cue, value, object_id, language):
+        content = json.dumps(
+            {"session_id": session_id, "source_id": source_id, "cue": cue,
+             "value": value, "object_id": object_id, "language": language},
+            sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+        ).encode("utf-8")
+        # The nonce distinguishes repeated proposals of even the identical fact.
+        confirmation_id = f"{uuid4().hex}:{hashlib.sha256(content).hexdigest()}"
+        return cls(session_id, source_id, cue, value, object_id, language, confirmation_id)
 
 
 class AliceRuntime:
@@ -154,7 +169,7 @@ class AliceRuntime:
             self.clear_pending_memory(session_id)
 
     def _dialogue_result(self, session_id, source_id, text, action, started,
-                         *, receipt=None):
+                         *, receipt=None, confirmation_id=None):
         """Templated control turn, explicitly distinct from Qwen generation.
 
         Acquisition/confirmation turns never enter a transcript or model prompt.
@@ -169,10 +184,13 @@ class AliceRuntime:
                 "query_context": "transient_memory_control_v1"}
         if receipt is not None:
             info["acquisition"] = receipt
+        if confirmation_id is not None:
+            info["confirmation_id"] = confirmation_id
         return GenerationResult(text, session_id, (source_id,), 0, 0,
                                 time.perf_counter() - started, 0, 0, info)
 
-    def _memory_dialogue(self, session_id, source_id, text):
+    def _memory_dialogue(self, session_id, source_id, text, *, pending_at_entry,
+                         confirmation_id=None):
         started = time.perf_counter()
         confirmation = confirm_intent(text)
         pending = self._pending_memory
@@ -184,6 +202,17 @@ class AliceRuntime:
                          if language_ru else
                          "There is no pending fact for this speaker in this session. Please repeat the full remember request.")
                 return self._dialogue_result(session_id, source_id, reply, "no_pending", started)
+            if ((confirmation_id is not None and confirmation_id != pending.confirmation_id)
+                    or (confirmation_id is None and pending_at_entry is not pending)):
+                reply = (f"Предыдущее подтверждение устарело. Запомнить: метка объекта "
+                         f"{pending.object_id} — {pending.value}, источник {pending.source_id}? "
+                         "Ответьте «да» или «нет». Память не менялась."
+                         if pending.language == "ru" else
+                         f"That confirmation is stale. Remember that object {pending.object_id} "
+                         f"has label {pending.value}, from source {pending.source_id}? "
+                         "Reply yes or no. Memory was not changed.")
+                return self._dialogue_result(session_id, source_id, reply, "stale_confirmation", started,
+                                             confirmation_id=pending.confirmation_id)
             if confirmation == "no":
                 self._pending_memory = None
                 reply = "Отменено. Память не менялась." if pending.language == "ru" else "Cancelled. Memory was not changed."
@@ -220,12 +249,13 @@ class AliceRuntime:
                      if intent.language == "ru" else
                      "This fact is not supported: the value must be one model token and the object ID short and explicit. Memory was not changed.")
             return self._dialogue_result(session_id, source_id, reply, "unsupported", started)
-        self._pending_memory = PendingMemoryFact(session_id, source_id, intent.cue,
-                                               intent.value, intent.object_id, intent.language)
+        self._pending_memory = PendingMemoryFact.create(session_id, source_id, intent.cue,
+                                                      intent.value, intent.object_id, intent.language)
         reply = (f"Запомнить: метка объекта {intent.object_id} — {intent.value}, источник {source_id}? Ответьте «да» или «нет»."
                  if intent.language == "ru" else
                  f"Remember that object {intent.object_id} has label {intent.value}, from source {source_id}? Reply yes or no.")
-        return self._dialogue_result(session_id, source_id, reply, "confirmation_required", started)
+        return self._dialogue_result(session_id, source_id, reply, "confirmation_required", started,
+                                     confirmation_id=self._pending_memory.confirmation_id)
 
     def save_memory(self) -> dict:
         with self._lock:
@@ -309,7 +339,12 @@ class AliceRuntime:
 
     def respond(self, session_id: str, source_id: str, text: str,
                 max_new_tokens: int = 16, *,
-                knowledge_source_id: str | None = None) -> GenerationResult:
+                knowledge_source_id: str | None = None,
+                confirmation_id: str | None = None) -> GenerationResult:
+        # Capture before waiting for another response: a plain legacy yes must
+        # never approve a different proposal created while it waited for the lock.
+        # Concurrent/UI clients can bind the exact displayed proposal explicitly.
+        pending_at_entry = self._pending_memory
         if type(max_new_tokens) is not int or not 1 <= max_new_tokens <= 64:
             raise RuntimeInputError("Stage 1 generation budget must be 1..64 tokens")
         with self._lock:
@@ -321,7 +356,9 @@ class AliceRuntime:
                     raise RuntimeInputError("External embedding hook and Neural Memory cannot be combined")
                 if max_new_tokens > 16:
                     raise RuntimeInputError("Neural Memory generation budget must be 1..16 tokens")
-                control = self._memory_dialogue(session_id, source_id, text)
+                control = self._memory_dialogue(session_id, source_id, text,
+                                                pending_at_entry=pending_at_entry,
+                                                confirmation_id=confirmation_id)
                 if control is not None:
                     return control
                 target = source_id if knowledge_source_id is None else knowledge_source_id

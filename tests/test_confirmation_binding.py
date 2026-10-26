@@ -82,6 +82,25 @@ def assert_value(app, source, object_id, value):
         assert torch.allclose(slot, expected, atol=2e-5, rtol=5e-6)
 
 
+def observe_confirmation_lock_entry(app, monkeypatch):
+    """Signal after respond's entry snapshot, before its RLock acquisition."""
+    original = app._lock
+    thread = []
+    entering = threading.Event()
+
+    class ObservedLock:
+        def __enter__(self):
+            if thread and thread[0] == threading.get_ident():
+                entering.set()
+            return original.__enter__()
+
+        def __exit__(self, *args):
+            return original.__exit__(*args)
+
+    monkeypatch.setattr(app, "_lock", ObservedLock())
+    return thread, entering
+
+
 def test_new_content_replaces_old_proposal_and_only_shown_fact_is_confirmed(runtime, monkeypatch):
     create, _root = runtime
     app = create()
@@ -108,6 +127,44 @@ def test_new_content_replaces_old_proposal_and_only_shown_fact_is_confirmed(runt
     assert len(writes) == 1
 
 
+def test_explicit_confirmation_id_binds_only_the_exact_displayed_content(runtime, monkeypatch):
+    create, _root = runtime
+    app = create()
+    session = app.store.new_session()
+    writes = record_writes(app, monkeypatch)
+    old = ask(app, session, proposal("a-0", "window")).memory_info["confirmation_id"]
+    latest = ask(app, session, proposal("b-0", "helmet")).memory_info["confirmation_id"]
+    assert old != latest
+    assert old.split(":")[1] != latest.split(":")[1]
+    before = app.memory_status()["memory_digest"]
+    stale = ask(app, session, "yes", confirmation_id=old)
+    assert action(stale) == "stale_confirmation"
+    assert "b-0" in stale.text and "helmet" in stale.text
+    assert "a-0" not in stale.text and "window" not in stale.text
+    assert stale.memory_info["confirmation_id"] == latest
+    assert not writes and app.memory_status()["memory_digest"] == before
+    assert app._pending_memory.confirmation_id == latest
+    assert action(ask(app, session, "yes", confirmation_id=latest)) == "remembered"
+    assert writes == [("user", cue("b-0"), "helmet")]
+
+
+def test_identical_fact_reproposal_requires_its_new_confirmation_id(runtime, monkeypatch):
+    create, _root = runtime
+    app = create()
+    session = app.store.new_session()
+    writes = record_writes(app, monkeypatch)
+    old = ask(app, session, proposal("a-0", "window")).memory_info["confirmation_id"]
+    latest = ask(app, session, proposal("a-0", "window")).memory_info["confirmation_id"]
+    assert old != latest and old.split(":")[1] == latest.split(":")[1]
+    stale = ask(app, session, "yes", confirmation_id=old)
+    assert action(stale) == "stale_confirmation"
+    assert "a-0" in stale.text and "window" in stale.text
+    assert stale.memory_info["confirmation_id"] == latest
+    assert not writes
+    assert action(ask(app, session, "yes", confirmation_id=latest)) == "remembered"
+    assert writes == [("user", cue("a-0"), "window")]
+
+
 def test_proposal_in_another_session_and_source_cannot_be_confirmed_by_old_owner(runtime, monkeypatch):
     create, _root = runtime
     app = create()
@@ -118,10 +175,15 @@ def test_proposal_in_another_session_and_source_cannot_be_confirmed_by_old_owner
     shown = ask(app, second, proposal("b-0", "helmet"), source="person:1",
                 knowledge_source_id="user")
     assert "person:1" in shown.text
+    confirmation_id = shown.memory_info["confirmation_id"]
     for session, source in ((first, "user"), (second, "user"), (first, "person:1")):
-        assert action(ask(app, session, "yes", source=source)) == "no_pending"
+        result = ask(app, session, "yes", source=source, confirmation_id=confirmation_id)
+        assert action(result) == "no_pending"
+        assert "b-0" not in result.text and "helmet" not in result.text
+        assert "confirmation_id" not in result.memory_info
     assert not writes
-    saved = ask(app, second, "yes", source="person:1", knowledge_source_id="user")
+    saved = ask(app, second, "yes", source="person:1", knowledge_source_id="user",
+                confirmation_id=confirmation_id)
     assert action(saved) == "remembered"
     assert writes == [("person:1", cue("b-0"), "helmet")]
     assert_value(app, "person:1", "b-0", "helmet")
@@ -151,13 +213,13 @@ def test_restoring_same_session_and_source_does_not_restore_confirmation(runtime
     create, root = runtime
     app = create()
     session = app.store.new_session("same-session-id")
-    ask(app, session, proposal("a-0", "window"))
+    confirmation_id = ask(app, session, proposal("a-0", "window")).memory_info["confirmation_id"]
     app.store.save(root / "sessions.json")
     before = app.memory_status()["memory_digest"]
     app.close()
     restored = create(SessionStore.load(root / "sessions.json"))
     assert restored.store.messages(session) == ()
-    assert action(ask(restored, session, "yes")) == "no_pending"
+    assert action(ask(restored, session, "yes", confirmation_id=confirmation_id)) == "no_pending"
     assert restored.memory_status()["memory_digest"] == before
     assert not (root / "memory" / "memory.json").exists()
 
@@ -188,7 +250,7 @@ def test_failed_save_preserves_exact_proposal_until_retry_without_saved_ack(runt
 
     monkeypatch.setattr(app.neural_memory.memory, "save", fail_save)
     with pytest.raises((OSError, RuntimeError, ValueError), match="confirmation write failed"):
-        ask(app, session, "yes")
+        ask(app, session, "yes", confirmation_id=pending.confirmation_id)
     assert not controls  # No templated Saved/remembered control result was emitted.
     assert app._pending_memory is pending
     assert (pending.session_id, pending.source_id, pending.cue, pending.value) == (
@@ -198,7 +260,7 @@ def test_failed_save_preserves_exact_proposal_until_retry_without_saved_ack(runt
     assert app.store.messages(session) == ()
 
     monkeypatch.setattr(app.neural_memory.memory, "save", original_save)
-    saved = ask(app, session, "yes")
+    saved = ask(app, session, "yes", confirmation_id=pending.confirmation_id)
     assert action(saved) == "remembered" and saved.memory_info["acquisition"]["saved"]
     assert writes == [("user", cue("b-0"), "dragon")] * 2
     assert_value(app, "user", "b-0", "dragon")
@@ -229,13 +291,16 @@ def test_new_proposal_after_failed_save_cannot_retry_the_failed_content(runtime,
         app.neural_memory.memory.source_index("user")]) == 0
 
 
-def test_concurrent_confirmation_waits_for_the_new_proposal_validation(runtime, monkeypatch):
+@pytest.mark.parametrize("use_explicit_id", [False, True], ids=["legacy-yes", "displayed-id"])
+def test_confirmation_queued_before_new_proposal_is_shown_cannot_save_it(
+        runtime, monkeypatch, use_explicit_id):
     create, _root = runtime
     app = create()
     session = app.store.new_session()
     writes = record_writes(app, monkeypatch)
-    ask(app, session, proposal("a-0", "window"))
-    validating, release, confirming, confirmed = (threading.Event() for _ in range(4))
+    old_id = ask(app, session, proposal("a-0", "window")).memory_info["confirmation_id"]
+    validating, release, confirmed = (threading.Event() for _ in range(3))
+    thread, entering_lock = observe_confirmation_lock_entry(app, monkeypatch)
     original_validate = app.neural_memory.validate_fact
 
     def delayed_validate(source, question, value):
@@ -245,9 +310,9 @@ def test_concurrent_confirmation_waits_for_the_new_proposal_validation(runtime, 
         return original_validate(source, question, value)
 
     def confirm():
-        confirming.set()
+        thread.append(threading.get_ident())
         try:
-            return ask(app, session, "yes")
+            return ask(app, session, "yes", confirmation_id=old_id if use_explicit_id else None)
         finally:
             confirmed.set()
 
@@ -257,12 +322,19 @@ def test_concurrent_confirmation_waits_for_the_new_proposal_validation(runtime, 
         try:
             assert validating.wait(3)
             saved = pool.submit(confirm)
-            assert confirming.wait(3)
-            assert not confirmed.wait(0.05)
+            assert entering_lock.wait(3)
+            assert not confirmed.is_set()
         finally:
             release.set()
-        assert action(proposed.result(timeout=3)) == "confirmation_required"
-        assert action(saved.result(timeout=3)) == "remembered"
+        shown = proposed.result(timeout=3)
+        assert action(shown) == "confirmation_required"
+        stale = saved.result(timeout=3)
+        assert action(stale) == "stale_confirmation"
+        assert "b-0" in stale.text and "helmet" in stale.text
+        assert "a-0" not in stale.text and "window" not in stale.text
+        assert stale.memory_info["confirmation_id"] == shown.memory_info["confirmation_id"]
+    assert not writes
+    assert action(ask(app, session, "yes", confirmation_id=shown.memory_info["confirmation_id"])) == "remembered"
     assert writes == [("user", cue("b-0"), "helmet")]
 
 
@@ -272,7 +344,8 @@ def test_concurrent_yes_replies_save_once_and_second_has_no_pending_fact(runtime
     session = app.store.new_session()
     ask(app, session, proposal("a-0", "window"))
     writes = record_writes(app, monkeypatch)
-    saving, release, confirming, confirmed = (threading.Event() for _ in range(4))
+    saving, release, confirmed = (threading.Event() for _ in range(3))
+    thread, entering_lock = observe_confirmation_lock_entry(app, monkeypatch)
     original_save = app.neural_memory.memory.save
 
     def delayed_save(*args, **kwargs):
@@ -281,7 +354,7 @@ def test_concurrent_yes_replies_save_once_and_second_has_no_pending_fact(runtime
         return original_save(*args, **kwargs)
 
     def confirm():
-        confirming.set()
+        thread.append(threading.get_ident())
         try:
             return ask(app, session, "yes")
         finally:
@@ -293,8 +366,8 @@ def test_concurrent_yes_replies_save_once_and_second_has_no_pending_fact(runtime
         try:
             assert saving.wait(3)
             second = pool.submit(confirm)
-            assert confirming.wait(3)
-            assert not confirmed.wait(0.05)
+            assert entering_lock.wait(3)
+            assert not confirmed.is_set()
         finally:
             release.set()
         assert action(first.result(timeout=3)) == "remembered"
