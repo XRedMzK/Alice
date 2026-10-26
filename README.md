@@ -4,15 +4,25 @@ Alice is an engineering project for a functioning modular cognitive system,
 informed by research and existing technical solutions. Its direction is an independently owned, changeable
 cognitive state and acquired experience that can survive replacement of a language
 backbone. **This branch adds bounded persistent parametric Neural Memory to
-the Stage 1 runtime.** Explicit structured facts survive process restart through
+the Stage 1 runtime.** Explicit supported facts survive process restart through
 an independently saved neural state. [Run and limits](docs/NEURAL_MEMORY_RUNTIME.md).
+
+Start with [package installation and real-model reproduction](docs/PUBLIC_V0_INSTALL.md),
+[observed validation and limits](docs/PUBLIC_V0_VALIDATION.md), and the
+[three-layer PR review and merge order](docs/PR_STACK_PUBLIC_V0.md). Model and
+sealed Bridge assets are supplied separately; the source contains no weights.
+The recorded Bridge has a [CPU reconstruction recipe](docs/PAYLOAD_BRIDGE_RECONSTRUCTION.md)
+with strict identity and CPU/MKL limits. Read [STATUS](STATUS.md) and the
+[PRE-DAY0 gap report](docs/PRE_DAY0_V0_GAP_REPORT_RU.md) before a personal trial:
+ordinary dialogue, current context and state-export protection still have
+concrete gaps. Public v0 is not Day0 acceptance or a canonical instance.
 
 > Use science to design the architecture; use engineering evidence to determine
 > whether Alice works.
 
 ## What is here
 
-The working implementation is the small **NMCM v2 Foundation**: versioned neural
+The historical infrastructure is the small **NMCM v2 Foundation**: versioned neural
 module contracts, a registry and graph runner, independent state/checkpoints,
 compatibility checks, telemetry and a separate GPU control plane. The synthetic
 A1/A2/A3/B/C modules exercise those boundaries; they are not a neural memory or an
@@ -48,8 +58,11 @@ Session transcripts and explicit participant IDs are support state, not Neural
 Memory. For the integrated structured-memory profile, use
 [Neural Memory runtime](docs/NEURAL_MEMORY_RUNTIME.md). It requires a separately
 obtained compatible Bridge checkpoint. Ordinary messages are not automatically
-learned, and the bounded memory profile uses the current full question rather
-than dialogue history. The no-memory Stage 1 profile retains its context behavior.
+learned. The dialogue adapter accepts a small RU/EN object-label grammar with
+explicit remember/correct intent and speaker-bound confirmation; it is not
+free-form language understanding. The bounded memory profile uses the current
+full question rather than dialogue history. The no-memory Stage 1 profile
+retains its context behavior.
 
 ## Basic local check
 
@@ -70,9 +83,10 @@ CUDA or use M1 data. The rest of the original CPU suite is supplied for inspecti
 and separate deliberate reproduction; several of its fixtures **do train small
 synthetic modules**. It is not part of the basic check or default CI job.
 
-The source checkout is the supported layout; schemas are resolved relative to
-that layout. No standalone wheel portability, Windows runtime qualification or
-fresh full Foundation qualification is claimed. See [the Foundation guide](docs/FOUNDATION.md)
+The Foundation checks use the source checkout; their schemas are resolved
+relative to that layout. The installable wheel exposes the runtime and memory
+namespaces, rather than a standalone Foundation resource API. Windows runtime
+qualification and a fresh full Foundation qualification are not claimed. See [the Foundation guide](docs/FOUNDATION.md)
 and [the small protocol](experiments/foundation-smoke/README.md).
 
 ## M1 research is separate

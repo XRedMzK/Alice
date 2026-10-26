@@ -1,3 +1,16 @@
+<!-- CURRENT: PUBLIC_V0_PRE_DAY0_20261026; older task scopes below are historical. -->
+
+Current owner authority: sequential publication/merge of Stage1 PR2, Memory PR3,
+and Dialogue PR4 after current CI and dependency/review checks, followed by the
+PRE-DAY0 GAP REPORT. See STATUS.md and docs/PRE_DAY0_V0_GAP_REPORT_RU.md.
+No new training or architecture is authorized for publication. No new cognitive
+module before this gap analysis; Day0/canonical instance need separate owner
+confirmation. Day0 -> close V1 -> cortical Alice v2. Keep exact source, external
+asset and capacity/context limitations explicit. The prior records below do
+not restart older work or unused fitting budgets.
+
+---
+
 # Alice working policy — Engineering First v2
 
 Authority: owner decision of 25 October 2026. This is the active policy for new
@@ -96,7 +109,11 @@ deletion of historical M1/Foundation evidence or unknown user data.
 
 This source-only continuation is prepared from Stage 1 `626b6f8` and accepted
 local runtime/memory integration `4cecf57`, under the owner's subsequent explicit
-authorization. It contains production dependency closure, asset-free tests and
+authorization. The subsequent bounded dialogue continuation reuses verified
+production code `87d7524`: explicit RU/EN object-label intent, transient
+speaker/session-bound confirmation and answer-blind RU query adaptation. It is
+deterministic support code, not a new neural language architecture or free NLU.
+It contains production dependency closure, asset-free tests and
 portable usage documentation only. Stage 1 PR #2 must be reviewed by the owner;
 preparation is not an approval, publication or merge. No remote mutation or model
 fitting is authorized by this package. Preserve separate Bridge/M lifecycle,

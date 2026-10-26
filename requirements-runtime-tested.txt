@@ -1,0 +1,11 @@
+# Observed Linux x86_64 / CPython 3.12 CUDA 13.0 profile.
+# Direct requirements, NOT a complete transitive or cross-platform lock.
+# Supply the matching Torch wheel separately (local wheelhouse or official
+# PyTorch platform selector); this file never selects an index or downloads a model.
+torch==2.13.0+cu130
+transformers==5.15.0
+tokenizers==0.22.2
+safetensors==0.8.0
+accelerate==1.14.0
+# Source/wheel build dependency used by the offline installation check.
+setuptools==84.0.0
