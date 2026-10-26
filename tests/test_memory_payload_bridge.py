@@ -32,8 +32,20 @@ def test_deterministic_model_independent_rotation_and_lossless_continuous_transp
         q = query.expand(*features.shape[:-1], 128)
         decoded = bridge.slots(q, payload, .2).squeeze(-2)
         assert torch.allclose(decoded, features, atol=2e-5, rtol=2e-6)
-        assert torch.allclose(bridge.value(features * 3)[..., 1:, :],
-                              payload[..., 1:, :] * 3, atol=2e-5, rtol=1e-6)
+        # Compare both inputs with the linear operator, not two rounded FP32
+        # paths: cancellation can make a near-zero output fail a fixed atol.
+        rotation = bridge.R.detach().double()
+        scale = bridge.value_scale.double()
+        unit_roundoff = torch.finfo(torch.float32).eps / 2
+        operations = rotation.shape[0] + 1  # 128-term dot product and division.
+        gamma = operations * unit_roundoff / (1 - operations * unit_roundoff)
+        scaled = features * 3
+        for inputs, encoded in ((features, payload), (scaled, bridge.value(scaled))):
+            blocks = inputs.double().reshape(*inputs.shape[:-1], 16, 128)
+            reference = (blocks @ rotation) / scale
+            error_bound = gamma * (blocks.abs() @ rotation.abs()) / scale
+            error = (encoded[..., 1:, :].detach().double() - reference).abs()
+            assert torch.all(error <= error_bound)
     assert torch.count_nonzero(bridge.slots(query, torch.zeros(17, 128), .2)) == 0
 
 
