@@ -94,6 +94,17 @@ deletion of historical M1/Foundation evidence or unknown user data.
 
 ## Current work boundary and reporting
 
+This source-only continuation is prepared from Stage 1 `626b6f8` and accepted
+local runtime/memory integration `4cecf57`, under the owner's subsequent explicit
+authorization. It contains production dependency closure, asset-free tests and
+portable usage documentation only. Stage 1 PR #2 must be reviewed by the owner;
+preparation is not an approval, publication or merge. No remote mutation or model
+fitting is authorized by this package. Preserve separate Bridge/M lifecycle,
+structured one-token acquisition, question-only memory framing and the ordinary
+Stage 1 context mode when memory is absent. See
+[runtime memory](docs/NEURAL_MEMORY_RUNTIME.md). Statements below are the original
+Stage 1 task boundary and do not erase later accepted local work.
+
 The current work package implements Stage 1: local frozen-Qwen generation,
 participant/source IDs, sessions, errors and a typed optional Bridge connection.
 No training, new large-model downloads, Neural Memory implementation or trained

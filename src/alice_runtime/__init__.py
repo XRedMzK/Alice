@@ -1,4 +1,4 @@
-"""Minimal technical runtime; independent Neural Memory is not implemented."""
+"""Local frozen-Qwen runtime with sessions and optional persistent Neural Memory."""
 
 from .sessions import Message, Participant, SessionError, SessionStore
 

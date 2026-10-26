@@ -1,5 +1,12 @@
 # Alice functional roadmap — proposal
 
+Prepared local continuation: structured acquisition and restart recall from
+independent parameter memory are integrated in ordinary AliceRuntime/CLI.
+No new model, large training run, lexicon extension or new architecture is part
+of this publication package. Scope remains one-token facts, explicit sources and
+three English question forms. [Usage](docs/NEURAL_MEMORY_RUNTIME.md). Earlier
+unimplemented-memory statements below describe the original roadmap snapshot.
+
 25 October 2026. **OWNER-APPROVED at PR #1 commit `9c29e08`.**
 [Engineering First Policy v2](docs/ENGINEERING_FIRST_POLICY_V2_RU.md) and the overall
 functional architecture are owner-approved. PR #1 was merged as `641d40e`.
